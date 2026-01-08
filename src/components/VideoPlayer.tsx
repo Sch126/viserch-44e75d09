@@ -2,26 +2,25 @@ import { Play, Pause, Volume2, Maximize2, SkipBack, SkipForward, Settings, Penci
 import { useState, useCallback } from 'react';
 import { DrawingOverlay } from './DrawingOverlay';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useToast } from '@/hooks/use-toast';
 
-export function VideoPlayer() {
+interface VideoPlayerProps {
+  onCircleCapture?: (bounds: { x: number; y: number; width: number; height: number }) => void;
+}
+
+export function VideoPlayer({ onCircleCapture }: VideoPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(35);
   const [isAnnotating, setIsAnnotating] = useState(false);
-  const { toast } = useToast();
 
   const handleCircleCapture = useCallback((bounds: { x: number; y: number; width: number; height: number }) => {
     console.log('Circle captured:', bounds);
-    toast({
-      title: "Area Captured",
-      description: `Coordinates: (${Math.round(bounds.x)}, ${Math.round(bounds.y)}) - Size: ${Math.round(bounds.width)}×${Math.round(bounds.height)}`,
-    });
-  }, [toast]);
+    onCircleCapture?.(bounds);
+  }, [onCircleCapture]);
 
   return (
-    <div className="bento-card h-full flex flex-col flex-1">
+    <div className="bento-card flex-1 flex flex-col min-h-[400px]">
       {/* Video Container */}
-      <div className="relative flex-1 bg-black/40 rounded-[1.5rem] overflow-hidden mb-4 min-h-[300px]">
+      <div className="relative flex-1 bg-black/40 rounded-[1.5rem] overflow-hidden mb-4">
         {/* Drawing Overlay */}
         <DrawingOverlay 
           isActive={isAnnotating} 
@@ -111,7 +110,7 @@ export function VideoPlayer() {
               exit={{ opacity: 0, y: 10 }}
             >
               <span className="text-xs font-medium text-primary">
-                ✏️ Annotation Mode — Draw or type on the video
+                ✏️ Annotation Mode — Circle diagrams to save them
               </span>
             </motion.div>
           )}
