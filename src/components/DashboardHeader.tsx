@@ -24,14 +24,14 @@ export function DashboardHeader() {
         </div>
 
         {/* Notifications */}
-        <button className="relative w-11 h-11 rounded-2xl glass-panel flex items-center justify-center hover:bg-white/50 transition-smooth">
+        <button className="relative w-11 h-11 rounded-2xl glass-panel flex items-center justify-center hover:bg-parchment transition-smooth">
           <Bell className="w-5 h-5 text-charcoal/50" />
-          <div className="absolute top-2.5 right-2.5 w-2 h-2 bg-gold rounded-full" />
+          <div className="absolute top-2.5 right-2.5 w-2 h-2 bg-slate-blue rounded-full" />
         </button>
 
         {/* Profile */}
-        <button className="w-11 h-11 rounded-2xl bg-gradient-to-br from-gold/30 to-gold/10 border border-gold/40 flex items-center justify-center hover:border-gold/60 transition-smooth">
-          <User className="w-5 h-5 text-gold" />
+        <button className="w-11 h-11 rounded-2xl bg-gradient-to-br from-slate-blue/30 to-slate-blue/10 border border-gold flex items-center justify-center hover:border-slate-blue transition-smooth">
+          <User className="w-5 h-5 text-slate-blue" />
         </button>
       </div>
     </header>

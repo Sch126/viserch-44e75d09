@@ -118,10 +118,10 @@ export function StatusTracker({ currentStage, isRefining = false }: StatusTracke
               className={`
                 relative p-3 rounded-xl border transition-smooth
                 ${isActive 
-                  ? 'bg-gold/10 border-gold/40' 
+                  ? 'bg-slate-blue/10 border-slate-blue/40' 
                   : isPast 
                     ? 'bg-success/10 border-success/30' 
-                    : 'bg-white/30 border-gold/20'
+                    : 'bg-parchment-light border-gold'
                 }
               `}
             >
@@ -130,10 +130,10 @@ export function StatusTracker({ currentStage, isRefining = false }: StatusTracke
                 <div className={`
                   w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 transition-smooth
                   ${isActive 
-                    ? 'bg-gold/20 text-gold' 
+                    ? 'bg-slate-blue/20 text-slate-blue' 
                     : isPast 
                       ? 'bg-success/20 text-success' 
-                      : 'bg-white/40 text-charcoal/40'
+                      : 'bg-parchment text-charcoal/40'
                   }
                 `}>
                   {isPast && !isActive ? (
@@ -155,12 +155,12 @@ export function StatusTracker({ currentStage, isRefining = false }: StatusTracke
                   <div className="flex items-center gap-2">
                     <span className={`
                       text-xs font-medium transition-smooth tracking-wide
-                      ${isActive ? 'text-gold' : isPast ? 'text-success' : 'text-charcoal/50'}
+                      ${isActive ? 'text-slate-blue' : isPast ? 'text-success' : 'text-charcoal/50'}
                     `}>
                       {index + 1}. {stage.label}
                     </span>
                     {isActive && (
-                      <Loader2 className="w-3 h-3 text-gold animate-spin" />
+                      <Loader2 className="w-3 h-3 text-slate-blue animate-spin" />
                     )}
                   </div>
                   <span className={`
@@ -175,7 +175,7 @@ export function StatusTracker({ currentStage, isRefining = false }: StatusTracke
               {/* Progress line */}
               {isActive && (
                 <motion.div
-                  className="absolute bottom-0 left-0 h-0.5 bg-gold rounded-full"
+                  className="absolute bottom-0 left-0 h-0.5 bg-slate-blue rounded-full"
                   initial={{ width: '0%' }}
                   animate={{ width: '100%' }}
                   transition={{ duration: 3, ease: "linear" }}

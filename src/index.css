@@ -6,77 +6,85 @@
 
 @layer base {
   :root {
-    --background: 40 23% 93%;
+    /* Deep Parchment Background */
+    --background: 43 18% 80%;
     --foreground: 0 0% 18%;
 
-    --card: 0 0% 100% / 0.4;
+    /* Parchment-toned cards with glass effect */
+    --card: 43 18% 85%;
     --card-foreground: 0 0% 18%;
 
-    --popover: 0 0% 100% / 0.6;
+    --popover: 43 18% 88%;
     --popover-foreground: 0 0% 18%;
 
-    --primary: 39 52% 56%;
+    /* Gold accent - edge-only, never fill */
+    --primary: 44 86% 45%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 0 0% 96%;
+    /* Parchment secondary */
+    --secondary: 43 18% 78%;
     --secondary-foreground: 0 0% 18%;
 
-    --muted: 0 0% 90%;
-    --muted-foreground: 0 0% 45%;
+    /* Charcoal muted tones */
+    --muted: 0 0% 35%;
+    --muted-foreground: 0 0% 50%;
 
-    --accent: 39 52% 56%;
+    /* Slate Blue accent - sparingly */
+    --accent: 213 20% 52%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 39 52% 56%;
-    --input: 0 0% 85%;
-    --ring: 39 52% 56%;
+    /* Gold border */
+    --border: 44 86% 45%;
+    --input: 43 18% 75%;
+    --ring: 213 26% 60%;
 
     --radius: 2.5rem;
 
-    --sidebar-background: 0 0% 100% / 0.4;
+    --sidebar-background: 43 18% 82%;
     --sidebar-foreground: 0 0% 18%;
-    --sidebar-primary: 39 52% 56%;
+    --sidebar-primary: 44 86% 45%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 100% / 0.6;
-    --sidebar-accent-foreground: 0 0% 18%;
-    --sidebar-border: 39 52% 56%;
-    --sidebar-ring: 39 52% 56%;
+    --sidebar-accent: 213 20% 52%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 44 86% 45%;
+    --sidebar-ring: 213 26% 60%;
 
-    /* Liquid Glass tokens */
-    --linen: 40 23% 93%;
-    --gold: 39 52% 56%;
+    /* Design tokens */
+    --parchment: 43 18% 80%;
+    --parchment-light: 43 18% 88%;
+    --gold: 44 86% 45%;
     --charcoal: 0 0% 18%;
-    --cobalt-glow: 210 100% 10%;
-    --glass-white: 0 0% 100%;
-    --surface-elevated: 0 0% 100% / 0.5;
-    --surface-hover: 0 0% 100% / 0.6;
+    --slate-blue: 213 26% 60%;
+    --slate-blue-dark: 213 20% 35%;
+    --surface-elevated: 43 18% 90%;
+    --surface-hover: 43 18% 85%;
     --success: 142 76% 45%;
     --warning: 38 92% 50%;
   }
 
   .dark {
-    --background: 40 23% 93%;
+    --background: 43 18% 80%;
     --foreground: 0 0% 18%;
-    --card: 0 0% 100% / 0.4;
+    --card: 43 18% 85%;
     --card-foreground: 0 0% 18%;
-    --popover: 0 0% 100% / 0.6;
+    --popover: 43 18% 88%;
     --popover-foreground: 0 0% 18%;
-    --primary: 39 52% 56%;
+    --primary: 44 86% 45%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 0 0% 96%;
+    --secondary: 43 18% 78%;
     --secondary-foreground: 0 0% 18%;
-    --muted: 0 0% 90%;
-    --muted-foreground: 0 0% 45%;
-    --accent: 39 52% 56%;
+    --muted: 0 0% 35%;
+    --muted-foreground: 0 0% 50%;
+    --accent: 213 20% 52%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 98%;
-    --border: 39 52% 56%;
-    --input: 0 0% 85%;
-    --ring: 39 52% 56%;
+    --border: 44 86% 45%;
+    --input: 43 18% 75%;
+    --ring: 213 26% 60%;
   }
 }
 
@@ -92,33 +100,45 @@
   }
 
   body {
-    @apply bg-linen text-charcoal;
+    @apply bg-parchment text-charcoal;
     letter-spacing: 0.04em;
     line-height: 1.6;
   }
 }
 
 @layer utilities {
+  /* Liquid Glass Panel - High-End Hardware Look */
   .glass-panel {
-    @apply rounded-[40px] border border-gold;
-    background: rgba(255, 255, 255, 0.4);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    @apply rounded-[40px];
+    background: hsl(var(--parchment-light));
+    border: 1px solid hsl(var(--gold));
+    /* Bulbing effect: specular highlight top, depth shadow bottom */
     box-shadow: 
-      inset 0 2px 0 0 rgba(255, 255, 255, 0.8),
-      inset 0 -2px 0 0 rgba(0, 0, 0, 0.05);
+      inset 0 2px 0 0 rgba(255, 255, 255, 0.9),
+      0 3px 8px -2px rgba(0, 0, 0, 0.25);
     transition: all 300ms ease-in-out;
   }
 
   .glass-panel-hover {
-    @apply hover:bg-white/50;
+    @apply hover:bg-[hsl(var(--surface-hover))];
   }
 
-  .cobalt-glow {
+  /* Slate Blue Glow for active elements */
+  .slate-glow {
     box-shadow: 
-      inset 0 2px 0 0 rgba(255, 255, 255, 0.8),
-      inset 0 -2px 0 0 rgba(0, 0, 0, 0.05),
-      0 0 30px 0 rgba(0, 26, 51, 0.5);
+      inset 0 2px 0 0 rgba(255, 255, 255, 0.9),
+      0 3px 8px -2px rgba(0, 0, 0, 0.25),
+      0 0 25px 0 rgba(128, 151, 179, 0.4);
+    border: 1px solid hsl(213 26% 60%);
+  }
+
+  /* Active element with slate blue edge glow */
+  .active-glow-edge {
+    border: 1px solid hsl(213 26% 60%);
+    box-shadow: 
+      inset 0 2px 0 0 rgba(255, 255, 255, 0.9),
+      0 3px 8px -2px rgba(0, 0, 0, 0.25),
+      0 0 15px 0 rgba(128, 151, 179, 0.3);
   }
 
   .bento-card {
@@ -130,7 +150,7 @@
   }
 
   .text-gradient {
-    @apply bg-gradient-to-r from-gold to-amber-600 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-primary to-amber-600 bg-clip-text text-transparent;
   }
 
   .glow-primary {
@@ -157,5 +177,11 @@
 
   .transition-smooth {
     transition: all 300ms ease-in-out;
+  }
+
+  /* Ink style for drawing - Slate Blue with soft glow */
+  .ink-stroke {
+    stroke: hsl(213 26% 60%);
+    filter: drop-shadow(0 0 4px rgba(128, 151, 179, 0.6));
   }
 }

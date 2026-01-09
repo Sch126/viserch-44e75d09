@@ -18,9 +18,9 @@ export function VideoPlayer({ onCircleCapture }: VideoPlayerProps) {
   }, [onCircleCapture]);
 
   return (
-    <div className="glass-panel cobalt-glow flex-1 flex flex-col min-h-[400px] p-6">
+    <div className="glass-panel active-glow-edge flex-1 flex flex-col min-h-[400px] p-6">
       {/* Video Container */}
-      <div className="relative flex-1 bg-charcoal/5 rounded-[32px] overflow-hidden mb-4 border border-gold/20">
+      <div className="relative flex-1 bg-charcoal/5 rounded-[32px] overflow-hidden mb-4 border border-gold">
         {/* Drawing Overlay */}
         <DrawingOverlay 
           isActive={isAnnotating} 
@@ -28,15 +28,15 @@ export function VideoPlayer({ onCircleCapture }: VideoPlayerProps) {
         />
 
         {/* Placeholder for video */}
-        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-white/20 to-white/5">
+        <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-parchment-light/40 to-parchment/20">
           <div className="text-center space-y-4">
             <motion.div 
-              className="w-20 h-20 rounded-full bg-gold/20 flex items-center justify-center mx-auto"
-              style={{ boxShadow: '0 0 40px rgba(197, 160, 89, 0.3)' }}
+              className="w-20 h-20 rounded-full bg-slate-blue/20 flex items-center justify-center mx-auto"
+              style={{ boxShadow: '0 0 40px rgba(128, 151, 179, 0.3)' }}
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
             >
-              <Play className="w-8 h-8 text-gold ml-1" />
+              <Play className="w-8 h-8 text-slate-blue ml-1" />
             </motion.div>
             <div>
               <h3 className="text-xl font-bold text-charcoal mb-1 tracking-wide">
@@ -60,10 +60,10 @@ export function VideoPlayer({ onCircleCapture }: VideoPlayerProps) {
               onClick={() => setIsAnnotating(!isAnnotating)}
               className={`w-10 h-10 rounded-xl flex items-center justify-center transition-smooth ${
                 isAnnotating 
-                  ? 'bg-gold text-white shadow-lg' 
-                  : 'bg-white/60 backdrop-blur-sm hover:bg-white/80 text-charcoal border border-gold/20'
+                  ? 'bg-slate-blue text-white shadow-lg' 
+                  : 'bg-parchment-light/80 backdrop-blur-sm hover:bg-parchment-light text-charcoal border border-gold'
               }`}
-              style={isAnnotating ? { boxShadow: '0 0 20px rgba(197, 160, 89, 0.4)' } : {}}
+              style={isAnnotating ? { boxShadow: '0 0 20px rgba(128, 151, 179, 0.4)' } : {}}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -93,7 +93,7 @@ export function VideoPlayer({ onCircleCapture }: VideoPlayerProps) {
             </motion.button>
 
             <motion.button 
-              className="w-8 h-8 rounded-xl bg-white/60 backdrop-blur-sm border border-gold/20 flex items-center justify-center hover:bg-white/80 transition-smooth"
+              className="w-8 h-8 rounded-xl bg-parchment-light/80 backdrop-blur-sm border border-gold flex items-center justify-center hover:bg-parchment-light transition-smooth"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -106,12 +106,12 @@ export function VideoPlayer({ onCircleCapture }: VideoPlayerProps) {
         <AnimatePresence>
           {isAnnotating && (
             <motion.div
-              className="absolute bottom-4 left-4 px-4 py-2 rounded-xl bg-gold/20 border border-gold/40 backdrop-blur-sm z-30"
+              className="absolute bottom-4 left-4 px-4 py-2 rounded-xl bg-slate-blue/20 border border-slate-blue/40 backdrop-blur-sm z-30"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 10 }}
             >
-              <span className="text-xs font-medium text-gold tracking-wide">
+              <span className="text-xs font-medium text-slate-blue-dark tracking-wide">
                 ✏️ Annotation Mode — Circle diagrams to save them
               </span>
             </motion.div>
@@ -125,12 +125,12 @@ export function VideoPlayer({ onCircleCapture }: VideoPlayerProps) {
         <div className="group relative">
           <div className="h-1.5 bg-charcoal/10 rounded-full overflow-hidden cursor-pointer">
             <motion.div
-              className="h-full bg-gold rounded-full relative"
+              className="h-full bg-slate-blue rounded-full relative"
               style={{ width: `${progress}%` }}
               layoutId="progress"
             >
               <motion.div 
-                className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-gold rounded-full opacity-0 group-hover:opacity-100 transition-smooth shadow-lg"
+                className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-slate-blue rounded-full opacity-0 group-hover:opacity-100 transition-smooth shadow-lg"
                 whileHover={{ scale: 1.3 }}
               />
             </motion.div>
@@ -150,8 +150,8 @@ export function VideoPlayer({ onCircleCapture }: VideoPlayerProps) {
             
             <motion.button
               onClick={() => setIsPlaying(!isPlaying)}
-              className="w-14 h-14 rounded-2xl bg-gold hover:bg-gold/90 flex items-center justify-center transition-smooth"
-              style={{ boxShadow: '0 0 30px rgba(197, 160, 89, 0.3)' }}
+              className="w-14 h-14 rounded-2xl bg-slate-blue hover:bg-slate-blue-dark flex items-center justify-center transition-smooth"
+              style={{ boxShadow: '0 0 30px rgba(128, 151, 179, 0.3)' }}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
