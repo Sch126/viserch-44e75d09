@@ -64,8 +64,8 @@ export function ProcessPaperButton({ onUpload, isProcessing }: ProcessPaperButto
               flex flex-col items-center justify-center p-6 rounded-2xl border-2 border-dashed cursor-pointer
               transition-smooth
               ${isDragging 
-                ? 'border-gold bg-gold/10' 
-                : 'border-gold/30 hover:border-gold/50 hover:bg-white/30'
+                ? 'border-slate-blue bg-slate-blue/10' 
+                : 'border-gold hover:border-slate-blue hover:bg-parchment-light'
               }
             `}
           >
@@ -77,9 +77,9 @@ export function ProcessPaperButton({ onUpload, isProcessing }: ProcessPaperButto
             />
             <motion.div
               animate={isDragging ? { scale: 1.1, y: -5 } : { scale: 1, y: 0 }}
-              className="w-12 h-12 rounded-2xl bg-gold/10 flex items-center justify-center mb-3"
+              className="w-12 h-12 rounded-2xl bg-slate-blue/10 flex items-center justify-center mb-3"
             >
-              <FileUp className="w-6 h-6 text-gold" />
+              <FileUp className="w-6 h-6 text-slate-blue" />
             </motion.div>
             <span className="text-sm font-medium text-charcoal mb-1 tracking-wide">
               Upload Research Paper
@@ -94,11 +94,11 @@ export function ProcessPaperButton({ onUpload, isProcessing }: ProcessPaperButto
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="p-4 rounded-2xl bg-white/40 border border-gold/30"
+            className="p-4 rounded-2xl bg-parchment-light border border-gold"
           >
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gold/10 flex items-center justify-center flex-shrink-0">
-                <FileText className="w-5 h-5 text-gold" />
+              <div className="w-10 h-10 rounded-xl bg-slate-blue/10 flex items-center justify-center flex-shrink-0">
+                <FileText className="w-5 h-5 text-slate-blue" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-charcoal truncate tracking-wide">
@@ -111,7 +111,7 @@ export function ProcessPaperButton({ onUpload, isProcessing }: ProcessPaperButto
               {!isProcessing && (
                 <button
                   onClick={handleClear}
-                  className="w-8 h-8 rounded-xl hover:bg-white/50 flex items-center justify-center transition-smooth"
+                  className="w-8 h-8 rounded-xl hover:bg-parchment flex items-center justify-center transition-smooth"
                 >
                   <X className="w-4 h-4 text-charcoal/50" />
                 </button>
@@ -131,11 +131,11 @@ export function ProcessPaperButton({ onUpload, isProcessing }: ProcessPaperButto
             w-full py-3 rounded-2xl font-medium text-sm transition-smooth tracking-wide
             flex items-center justify-center gap-2
             ${isProcessing 
-              ? 'bg-gold/50 text-white cursor-wait' 
-              : 'bg-gold text-white hover:bg-gold/90'
+              ? 'bg-slate-blue/50 text-white cursor-wait' 
+              : 'bg-slate-blue text-white hover:bg-slate-blue-dark'
             }
           `}
-          style={!isProcessing ? { boxShadow: '0 0 30px rgba(197, 160, 89, 0.3)' } : {}}
+          style={!isProcessing ? { boxShadow: '0 0 30px rgba(128, 151, 179, 0.3)' } : {}}
           whileHover={!isProcessing ? { scale: 1.02 } : {}}
           whileTap={!isProcessing ? { scale: 0.98 } : {}}
         >

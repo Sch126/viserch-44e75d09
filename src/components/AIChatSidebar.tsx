@@ -33,16 +33,16 @@ export function AIChatSidebar() {
   const [isVoiceActive, setIsVoiceActive] = useState(false);
 
   return (
-    <aside className="glass-panel cobalt-glow h-full flex flex-col min-w-[320px] max-w-[380px] p-6">
+    <aside className="glass-panel slate-glow h-full flex flex-col min-w-[320px] max-w-[380px] p-6">
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
         <motion.div 
-          className="w-10 h-10 rounded-2xl bg-cobalt-glow/20 flex items-center justify-center relative"
+          className="w-10 h-10 rounded-2xl bg-slate-blue/20 flex items-center justify-center relative"
           whileHover={{ scale: 1.05 }}
         >
-          <Bot className="w-5 h-5 text-gold" />
+          <Bot className="w-5 h-5 text-slate-blue" />
           <motion.div 
-            className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-success rounded-full border-2 border-white/40"
+            className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-success rounded-full border-2 border-parchment-light"
             animate={{ scale: [1, 1.2, 1] }}
             transition={{ duration: 2, repeat: Infinity }}
           />
@@ -52,11 +52,11 @@ export function AIChatSidebar() {
           <p className="text-xs text-charcoal/50 tracking-wide">Always here to help</p>
         </div>
         <motion.button 
-          className="ml-auto w-8 h-8 rounded-xl bg-gold/10 flex items-center justify-center hover:bg-gold/20 transition-smooth"
+          className="ml-auto w-8 h-8 rounded-xl bg-slate-blue/10 flex items-center justify-center hover:bg-slate-blue/20 transition-smooth"
           whileHover={{ scale: 1.1, rotate: 15 }}
           whileTap={{ scale: 0.9 }}
         >
-          <Sparkles className="w-4 h-4 text-gold" />
+          <Sparkles className="w-4 h-4 text-slate-blue" />
         </motion.button>
       </div>
 
@@ -81,21 +81,21 @@ export function AIChatSidebar() {
             >
               <motion.div
                 className={`w-8 h-8 rounded-xl flex-shrink-0 flex items-center justify-center ${
-                  message.role === 'user' ? 'bg-white/50' : 'bg-gold/10'
+                  message.role === 'user' ? 'bg-parchment-light' : 'bg-slate-blue/10'
                 }`}
                 whileHover={{ scale: 1.1 }}
               >
                 {message.role === 'user' ? (
                   <User className="w-4 h-4 text-charcoal/60" />
                 ) : (
-                  <Bot className="w-4 h-4 text-gold" />
+                  <Bot className="w-4 h-4 text-slate-blue" />
                 )}
               </motion.div>
               <motion.div
                 className={`flex-1 p-4 rounded-2xl text-sm leading-relaxed tracking-wide ${
                   message.role === 'user'
-                    ? 'bg-gold text-white rounded-tr-md'
-                    : 'bg-white/50 text-charcoal rounded-tl-md'
+                    ? 'bg-slate-blue text-white rounded-tr-md'
+                    : 'bg-parchment-light text-charcoal rounded-tl-md'
                 }`}
                 whileHover={{ scale: 1.01 }}
                 transition={{ type: "spring", stiffness: 400 }}
@@ -115,10 +115,10 @@ export function AIChatSidebar() {
               exit={{ opacity: 0, y: -10 }}
               className="flex gap-3"
             >
-              <div className="w-8 h-8 rounded-xl bg-gold/10 flex items-center justify-center">
-                <Bot className="w-4 h-4 text-gold" />
+              <div className="w-8 h-8 rounded-xl bg-slate-blue/10 flex items-center justify-center">
+                <Bot className="w-4 h-4 text-slate-blue" />
               </div>
-              <div className="flex-1 p-4 rounded-2xl rounded-tl-md bg-white/50">
+              <div className="flex-1 p-4 rounded-2xl rounded-tl-md bg-parchment-light">
                 <motion.div 
                   className="flex items-center gap-2 text-sm text-charcoal/60 tracking-wide"
                   animate={{ opacity: [0.5, 1, 0.5] }}
@@ -133,9 +133,9 @@ export function AIChatSidebar() {
       </div>
 
       {/* Input */}
-      <div className="mt-4 pt-4 border-t border-gold/30">
+      <div className="mt-4 pt-4 border-t border-slate-blue/30">
         <motion.div 
-          className="flex items-center gap-2 p-2 rounded-2xl bg-white/40 border border-gold/30 focus-within:border-gold/60 transition-smooth"
+          className="flex items-center gap-2 p-2 rounded-2xl bg-parchment-light border border-slate-blue/30 focus-within:border-slate-blue/60 transition-smooth"
           whileFocus={{ scale: 1.01 }}
         >
           <input
@@ -146,7 +146,7 @@ export function AIChatSidebar() {
             className="flex-1 bg-transparent px-2 py-2 text-sm text-charcoal placeholder:text-charcoal/40 focus:outline-none tracking-wide"
           />
           <motion.button 
-            className="w-10 h-10 rounded-xl bg-gold hover:bg-gold/90 flex items-center justify-center transition-smooth"
+            className="w-10 h-10 rounded-xl bg-slate-blue hover:bg-slate-blue-dark flex items-center justify-center transition-smooth"
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
           >

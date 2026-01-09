@@ -30,8 +30,8 @@ export function LabNotebook({ entries, onDeleteEntry, isExpanded, onToggleExpand
         className="flex items-center justify-between w-full group"
       >
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-gold/10 flex items-center justify-center">
-            <BookOpen className="w-5 h-5 text-gold" />
+          <div className="w-10 h-10 rounded-2xl bg-slate-blue/10 flex items-center justify-center">
+            <BookOpen className="w-5 h-5 text-slate-blue" />
           </div>
           <div className="text-left">
             <h2 className="text-lg font-bold text-charcoal tracking-wide">Lab Notebook</h2>
@@ -42,7 +42,7 @@ export function LabNotebook({ entries, onDeleteEntry, isExpanded, onToggleExpand
         </div>
         <motion.div
           animate={{ rotate: isExpanded ? 180 : 0 }}
-          className="w-8 h-8 rounded-xl bg-white/40 group-hover:bg-white/60 flex items-center justify-center transition-smooth"
+          className="w-8 h-8 rounded-xl bg-parchment-light group-hover:bg-parchment flex items-center justify-center transition-smooth"
         >
           <ChevronDown className="w-4 h-4 text-charcoal/50" />
         </motion.div>
@@ -58,10 +58,10 @@ export function LabNotebook({ entries, onDeleteEntry, isExpanded, onToggleExpand
             transition={{ duration: 0.3 }}
             className="overflow-hidden"
           >
-            <div className="mt-4 pt-4 border-t border-gold/30 space-y-3 max-h-[300px] overflow-y-auto scrollbar-thin">
+            <div className="mt-4 pt-4 border-t border-gold space-y-3 max-h-[300px] overflow-y-auto scrollbar-thin">
               {entries.length === 0 ? (
                 <div className="text-center py-8">
-                  <div className="w-12 h-12 rounded-2xl bg-white/40 flex items-center justify-center mx-auto mb-3">
+                  <div className="w-12 h-12 rounded-2xl bg-parchment-light flex items-center justify-center mx-auto mb-3">
                     <Circle className="w-5 h-5 text-charcoal/40" />
                   </div>
                   <p className="text-sm text-charcoal/50 tracking-wide">
@@ -76,12 +76,12 @@ export function LabNotebook({ entries, onDeleteEntry, isExpanded, onToggleExpand
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, x: -20 }}
                     transition={{ delay: index * 0.05 }}
-                    className="group p-3 rounded-xl bg-white/30 hover:bg-white/50 border border-gold/20 hover:border-gold/40 transition-smooth"
+                    className="group p-3 rounded-xl bg-parchment-light hover:bg-parchment border border-gold transition-smooth"
                   >
                     <div className="flex items-start gap-3">
                       <div className={`
                         w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0
-                        ${entry.type === 'diagram' ? 'bg-gold/10 text-gold' : 'bg-cobalt-glow/10 text-cobalt-glow'}
+                        ${entry.type === 'diagram' ? 'bg-slate-blue/10 text-slate-blue' : 'bg-slate-blue/10 text-slate-blue'}
                       `}>
                         {entry.type === 'diagram' ? (
                           <Image className="w-4 h-4" />

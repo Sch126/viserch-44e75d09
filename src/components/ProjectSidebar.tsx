@@ -52,13 +52,13 @@ export function ProjectSidebar({ onUpload, isProcessing, pipelineStage, isRefini
       {/* Projects Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-gold/10 flex items-center justify-center">
-            <FolderOpen className="w-5 h-5 text-gold" />
+          <div className="w-10 h-10 rounded-2xl bg-slate-blue/10 flex items-center justify-center">
+            <FolderOpen className="w-5 h-5 text-slate-blue" />
           </div>
           <h2 className="text-lg font-bold text-charcoal tracking-wide">Projects</h2>
         </div>
         <motion.button 
-          className="w-8 h-8 rounded-xl bg-white/40 hover:bg-white/60 flex items-center justify-center transition-smooth"
+          className="w-8 h-8 rounded-xl bg-parchment-light hover:bg-parchment flex items-center justify-center transition-smooth"
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
         >
@@ -74,7 +74,7 @@ export function ProjectSidebar({ onUpload, isProcessing, pipelineStage, isRefini
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: index * 0.05 }}
-            className="group p-4 rounded-2xl bg-white/30 hover:bg-white/50 border border-gold/20 hover:border-gold/40 cursor-pointer transition-smooth"
+            className="group p-4 rounded-2xl bg-parchment-light hover:bg-parchment border border-gold hover:border-gold cursor-pointer transition-smooth"
             whileHover={{ scale: 1.01 }}
           >
             <div className="flex items-start justify-between mb-3">
@@ -92,7 +92,7 @@ export function ProjectSidebar({ onUpload, isProcessing, pipelineStage, isRefini
             <div className="space-y-2">
               <div className="h-1.5 bg-charcoal/10 rounded-full overflow-hidden">
                 <motion.div
-                  className="h-full bg-gold rounded-full"
+                  className="h-full bg-slate-blue rounded-full"
                   initial={{ width: 0 }}
                   animate={{ width: `${project.progress}%` }}
                   transition={{ duration: 0.8, delay: index * 0.1 }}
@@ -105,9 +105,9 @@ export function ProjectSidebar({ onUpload, isProcessing, pipelineStage, isRefini
       </div>
 
       {/* New Project Button */}
-      <div className="mt-4 pt-4 border-t border-gold/30">
+      <div className="mt-4 pt-4 border-t border-gold">
         <motion.button 
-          className="w-full py-3 rounded-2xl bg-white/30 hover:bg-white/50 border border-gold/20 hover:border-gold/40 text-sm text-charcoal/60 hover:text-charcoal transition-smooth flex items-center justify-center gap-2 tracking-wide"
+          className="w-full py-3 rounded-2xl bg-parchment-light hover:bg-parchment border border-gold text-sm text-charcoal/60 hover:text-charcoal transition-smooth flex items-center justify-center gap-2 tracking-wide"
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
         >
