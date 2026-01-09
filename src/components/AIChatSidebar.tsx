@@ -27,13 +27,17 @@ const initialMessages: Message[] = [
   },
 ];
 
-export function AIChatSidebar() {
+interface AIChatSidebarProps {
+  isVideoPaused?: boolean;
+}
+
+export function AIChatSidebar({ isVideoPaused = true }: AIChatSidebarProps) {
   const [messages] = useState<Message[]>(initialMessages);
   const [input, setInput] = useState('');
   const [isVoiceActive, setIsVoiceActive] = useState(false);
 
   return (
-    <aside className="glass-panel slate-glow h-full flex flex-col min-w-[320px] max-w-[380px] p-6">
+    <aside className={`glass-panel slate-glow h-full flex flex-col min-w-[320px] max-w-[380px] p-6 transition-smooth ${isVideoPaused ? 'chat-highlight' : ''}`}>
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
         <motion.div 
@@ -81,7 +85,7 @@ export function AIChatSidebar() {
             >
               <motion.div
                 className={`w-8 h-8 rounded-xl flex-shrink-0 flex items-center justify-center ${
-                  message.role === 'user' ? 'bg-parchment-light' : 'bg-slate-blue/10'
+                  message.role === 'user' ? 'bg-parchment-light chat-bubble' : 'bg-slate-blue/10 chat-bubble'
                 }`}
                 whileHover={{ scale: 1.1 }}
               >
@@ -92,7 +96,7 @@ export function AIChatSidebar() {
                 )}
               </motion.div>
               <motion.div
-                className={`flex-1 p-4 rounded-2xl text-sm leading-relaxed tracking-wide ${
+                className={`flex-1 p-4 rounded-2xl text-sm leading-relaxed tracking-wide chat-bubble ${
                   message.role === 'user'
                     ? 'bg-slate-blue text-white rounded-tr-md'
                     : 'bg-parchment-light text-charcoal rounded-tl-md'

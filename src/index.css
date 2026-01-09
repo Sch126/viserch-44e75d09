@@ -56,9 +56,11 @@
     --parchment: 43 18% 80%;
     --parchment-light: 43 18% 88%;
     --gold: 44 86% 45%;
+    --gold-dim: 44 60% 45%;
     --charcoal: 0 0% 18%;
     --slate-blue: 213 26% 60%;
     --slate-blue-dark: 213 20% 35%;
+    --cobalt-blue: 210 100% 20%;
     --surface-elevated: 43 18% 90%;
     --surface-hover: 43 18% 85%;
     --success: 142 76% 45%;
@@ -179,9 +181,75 @@
     transition: all 300ms ease-in-out;
   }
 
-  /* Ink style for drawing - Slate Blue with soft glow */
+  /* Ink style for drawing - Dark Cobalt Blue with glow */
   .ink-stroke {
-    stroke: hsl(213 26% 60%);
-    filter: drop-shadow(0 0 4px rgba(128, 151, 179, 0.6));
+    stroke: hsl(210 100% 20%);
+    filter: drop-shadow(0 0 6px rgba(0, 51, 102, 0.8));
+  }
+
+  /* Focus mode dimmed borders */
+  .focus-mode-dimmed {
+    border-color: hsl(var(--gold-dim)) !important;
+    opacity: 0.85;
+  }
+
+  /* Video playing - dim sidebars */
+  .sidebar-dimmed {
+    background: hsl(var(--parchment-light) / 0.7);
+    opacity: 0.85;
+    transition: all 300ms ease-in-out;
+  }
+
+  /* Video paused - light up interaction zones */
+  .interaction-highlight {
+    border-color: hsl(var(--gold)) !important;
+    box-shadow: 
+      inset 0 2px 0 0 rgba(255, 255, 255, 0.9),
+      0 3px 8px -2px rgba(0, 0, 0, 0.25),
+      0 0 20px 0 rgba(217, 159, 13, 0.3);
+  }
+
+  .chat-highlight {
+    box-shadow: 
+      inset 0 2px 0 0 rgba(255, 255, 255, 0.9),
+      0 3px 8px -2px rgba(0, 0, 0, 0.25),
+      0 0 30px 0 rgba(128, 151, 179, 0.5);
+  }
+
+  /* Chat bubble glass effect */
+  .chat-bubble {
+    box-shadow: 
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.6),
+      0 2px 4px -1px rgba(0, 0, 0, 0.15);
+  }
+
+  /* Lab notebook card new-note glow */
+  .new-note-glow {
+    animation: noteGlow 2s ease-out forwards;
+  }
+
+  @keyframes noteGlow {
+    0% {
+      border-color: hsl(213 26% 60%);
+      box-shadow: 0 0 20px 0 rgba(128, 151, 179, 0.6);
+    }
+    100% {
+      border-color: hsl(var(--gold));
+      box-shadow: none;
+    }
+  }
+
+  /* Circle pulse animation */
+  @keyframes circlePulse {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.6;
+    }
+  }
+
+  .circle-pulse {
+    animation: circlePulse 1.5s ease-in-out infinite;
   }
 }

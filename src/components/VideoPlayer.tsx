@@ -5,12 +5,21 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 interface VideoPlayerProps {
   onCircleCapture?: (bounds: { x: number; y: number; width: number; height: number }) => void;
+  isPlaying?: boolean;
+  onPlayStateChange?: (isPlaying: boolean) => void;
 }
 
-export function VideoPlayer({ onCircleCapture }: VideoPlayerProps) {
-  const [isPlaying, setIsPlaying] = useState(false);
+export function VideoPlayer({ onCircleCapture, isPlaying: externalIsPlaying, onPlayStateChange }: VideoPlayerProps) {
+  const [internalIsPlaying, setInternalIsPlaying] = useState(false);
+  const isPlaying = externalIsPlaying ?? internalIsPlaying;
   const [progress, setProgress] = useState(35);
   const [isAnnotating, setIsAnnotating] = useState(false);
+
+  const handlePlayToggle = () => {
+    const newState = !isPlaying;
+    setInternalIsPlaying(newState);
+    onPlayStateChange?.(newState);
+  };
 
   const handleCircleCapture = useCallback((bounds: { x: number; y: number; width: number; height: number }) => {
     console.log('Circle captured:', bounds);
@@ -18,7 +27,7 @@ export function VideoPlayer({ onCircleCapture }: VideoPlayerProps) {
   }, [onCircleCapture]);
 
   return (
-    <div className="glass-panel active-glow-edge flex-1 flex flex-col min-h-[400px] p-6">
+    <div className={`glass-panel active-glow-edge flex-1 flex flex-col min-h-[400px] p-6 transition-smooth ${!isPlaying ? 'interaction-highlight' : ''}`}>
       {/* Video Container */}
       <div className="relative flex-1 bg-charcoal/5 rounded-[32px] overflow-hidden mb-4 border border-gold">
         {/* Drawing Overlay */}
@@ -149,7 +158,7 @@ export function VideoPlayer({ onCircleCapture }: VideoPlayerProps) {
             </motion.button>
             
             <motion.button
-              onClick={() => setIsPlaying(!isPlaying)}
+              onClick={handlePlayToggle}
               className="w-14 h-14 rounded-2xl bg-slate-blue hover:bg-slate-blue-dark flex items-center justify-center transition-smooth"
               style={{ boxShadow: '0 0 30px rgba(128, 151, 179, 0.3)' }}
               whileHover={{ scale: 1.05 }}
