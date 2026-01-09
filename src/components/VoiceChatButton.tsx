@@ -41,11 +41,11 @@ export function VoiceChatButton({ onVoiceStart, onVoiceEnd }: VoiceChatButtonPro
       onClick={handleToggleVoice}
       disabled={isConnecting}
       className={`
-        relative w-full py-4 rounded-2xl border transition-all duration-300
-        flex items-center justify-center gap-3 overflow-hidden
+        relative w-full py-4 rounded-2xl border transition-smooth
+        flex items-center justify-center gap-3 overflow-hidden tracking-wide
         ${isListening 
-          ? 'bg-primary/10 border-primary/30 text-primary' 
-          : 'bg-secondary border-border text-muted-foreground hover:text-foreground hover:bg-surface-hover hover:border-primary/20'
+          ? 'bg-gold/10 border-gold/40 text-gold' 
+          : 'bg-white/30 border-gold/20 text-charcoal/60 hover:text-charcoal hover:bg-white/50 hover:border-gold/40'
         }
         ${isConnecting ? 'cursor-wait' : 'cursor-pointer'}
       `}
@@ -56,7 +56,7 @@ export function VoiceChatButton({ onVoiceStart, onVoiceEnd }: VoiceChatButtonPro
       <AnimatePresence>
         {isListening && (
           <motion.div
-            className="absolute inset-0 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5"
+            className="absolute inset-0 bg-gradient-to-r from-gold/5 via-gold/15 to-gold/5"
             initial={{ opacity: 0 }}
             animate={{ 
               opacity: [0.3, 0.6, 0.3],
@@ -96,7 +96,7 @@ export function VoiceChatButton({ onVoiceStart, onVoiceEnd }: VoiceChatButtonPro
       <AnimatePresence>
         {isListening && (
           <motion.div
-            className="absolute inset-0 rounded-2xl border-2 border-primary/40"
+            className="absolute inset-0 rounded-2xl border-2 border-gold/40"
             initial={{ scale: 1, opacity: 0.6 }}
             animate={{ 
               scale: [1, 1.05, 1],

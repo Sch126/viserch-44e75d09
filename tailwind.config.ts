@@ -17,10 +17,14 @@ export default {
         sans: ['Atkinson Hyperlegible', 'system-ui', 'sans-serif'],
       },
       colors: {
-        'surface-elevated': 'hsl(var(--surface-elevated))',
-        'surface-hover': 'hsl(var(--surface-hover))',
-        success: 'hsl(var(--success))',
-        warning: 'hsl(var(--warning))',
+        linen: '#F2EFE9',
+        gold: '#C5A059',
+        charcoal: '#2D2D2D',
+        'cobalt-glow': '#001A33',
+        'surface-elevated': 'rgba(255, 255, 255, 0.5)',
+        'surface-hover': 'rgba(255, 255, 255, 0.6)',
+        success: 'hsl(142 76% 45%)',
+        warning: 'hsl(38 92% 50%)',
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -69,6 +73,7 @@ export default {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        '4xl': '40px',
       },
       keyframes: {
         "accordion-down": {
@@ -88,6 +93,12 @@ export default {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "pulse-glow": "pulse-glow 2s ease-in-out infinite",
+      },
+      transitionDuration: {
+        '300': '300ms',
+      },
+      transitionTimingFunction: {
+        'ease-in-out': 'ease-in-out',
       },
     },
   },

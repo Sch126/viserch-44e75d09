@@ -86,7 +86,7 @@ const Index = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background p-6">
+    <div className="min-h-screen bg-linen p-6">
       <div className="max-w-[1800px] mx-auto h-[calc(100vh-48px)] flex flex-col">
         <DashboardHeader />
         
