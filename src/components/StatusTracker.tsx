@@ -52,7 +52,7 @@ export function StatusTracker({ currentStage, isRefining = false }: StatusTracke
     <div className="space-y-3">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-foreground">Pipeline Status</h3>
+        <h3 className="text-sm font-semibold text-charcoal tracking-wide">Pipeline Status</h3>
         {isComplete && (
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
@@ -74,7 +74,7 @@ export function StatusTracker({ currentStage, isRefining = false }: StatusTracke
             exit={{ opacity: 0, height: 0 }}
             className="overflow-hidden"
           >
-            <div className="p-3 rounded-xl bg-warning/10 border border-warning/20">
+            <div className="p-3 rounded-xl bg-warning/10 border border-warning/30">
               <div className="flex items-center gap-2">
                 <motion.div
                   animate={{ rotate: 360 }}
@@ -82,7 +82,7 @@ export function StatusTracker({ currentStage, isRefining = false }: StatusTracke
                 >
                   <RefreshCw className="w-4 h-4 text-warning" />
                 </motion.div>
-                <span className="text-xs font-medium text-warning">
+                <span className="text-xs font-medium text-warning tracking-wide">
                   Refining for Clarity...
                 </span>
               </div>
@@ -116,24 +116,24 @@ export function StatusTracker({ currentStage, isRefining = false }: StatusTracke
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.1 }}
               className={`
-                relative p-3 rounded-xl border transition-all duration-300
+                relative p-3 rounded-xl border transition-smooth
                 ${isActive 
-                  ? 'bg-primary/10 border-primary/30' 
+                  ? 'bg-gold/10 border-gold/40' 
                   : isPast 
-                    ? 'bg-success/5 border-success/20' 
-                    : 'bg-secondary/50 border-border'
+                    ? 'bg-success/10 border-success/30' 
+                    : 'bg-white/30 border-gold/20'
                 }
               `}
             >
               <div className="flex items-center gap-3">
                 {/* Icon */}
                 <div className={`
-                  w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors
+                  w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 transition-smooth
                   ${isActive 
-                    ? 'bg-primary/20 text-primary' 
+                    ? 'bg-gold/20 text-gold' 
                     : isPast 
                       ? 'bg-success/20 text-success' 
-                      : 'bg-muted text-muted-foreground'
+                      : 'bg-white/40 text-charcoal/40'
                   }
                 `}>
                   {isPast && !isActive ? (
@@ -154,18 +154,18 @@ export function StatusTracker({ currentStage, isRefining = false }: StatusTracke
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <span className={`
-                      text-xs font-medium transition-colors
-                      ${isActive ? 'text-primary' : isPast ? 'text-success' : 'text-muted-foreground'}
+                      text-xs font-medium transition-smooth tracking-wide
+                      ${isActive ? 'text-gold' : isPast ? 'text-success' : 'text-charcoal/50'}
                     `}>
                       {index + 1}. {stage.label}
                     </span>
                     {isActive && (
-                      <Loader2 className="w-3 h-3 text-primary animate-spin" />
+                      <Loader2 className="w-3 h-3 text-gold animate-spin" />
                     )}
                   </div>
                   <span className={`
-                    text-xs transition-colors
-                    ${isActive || isPast ? 'text-muted-foreground' : 'text-muted-foreground/50'}
+                    text-xs transition-smooth tracking-wide
+                    ${isActive || isPast ? 'text-charcoal/50' : 'text-charcoal/30'}
                   `}>
                     {stage.description}
                   </span>
@@ -175,7 +175,7 @@ export function StatusTracker({ currentStage, isRefining = false }: StatusTracke
               {/* Progress line */}
               {isActive && (
                 <motion.div
-                  className="absolute bottom-0 left-0 h-0.5 bg-primary rounded-full"
+                  className="absolute bottom-0 left-0 h-0.5 bg-gold rounded-full"
                   initial={{ width: '0%' }}
                   animate={{ width: '100%' }}
                   transition={{ duration: 3, ease: "linear" }}
