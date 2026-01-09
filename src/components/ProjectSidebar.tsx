@@ -30,9 +30,13 @@ interface ProjectSidebarProps {
   isRefining: boolean;
 }
 
-export function ProjectSidebar({ onUpload, isProcessing, pipelineStage, isRefining }: ProjectSidebarProps) {
+interface ExtendedProjectSidebarProps extends ProjectSidebarProps {
+  isVideoPlaying?: boolean;
+}
+
+export function ProjectSidebar({ onUpload, isProcessing, pipelineStage, isRefining, isVideoPlaying = false }: ExtendedProjectSidebarProps) {
   return (
-    <aside className="glass-panel h-full flex flex-col min-w-[280px] max-w-[320px] p-6">
+    <aside className={`glass-panel h-full flex flex-col min-w-[280px] max-w-[320px] p-6 transition-smooth ${isVideoPlaying ? 'sidebar-dimmed' : ''}`}>
       {/* Process Paper Section */}
       <div className="mb-6">
         <ProcessPaperButton onUpload={onUpload} isProcessing={isProcessing} />

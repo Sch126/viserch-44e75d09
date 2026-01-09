@@ -16,14 +16,16 @@ interface LabNotebookProps {
   onDeleteEntry: (id: string) => void;
   isExpanded: boolean;
   onToggleExpand: () => void;
+  isVideoPlaying?: boolean;
+  newEntryId?: string | null;
 }
 
-export function LabNotebook({ entries, onDeleteEntry, isExpanded, onToggleExpand }: LabNotebookProps) {
+export function LabNotebook({ entries, onDeleteEntry, isExpanded, onToggleExpand, isVideoPlaying = false, newEntryId }: LabNotebookProps) {
   const diagramCount = entries.filter(e => e.type === 'diagram').length;
   const explanationCount = entries.filter(e => e.type === 'explanation').length;
 
   return (
-    <div className="glass-panel flex flex-col p-6">
+    <div className={`glass-panel flex flex-col p-6 transition-smooth ${isVideoPlaying ? 'sidebar-dimmed' : ''}`}>
       {/* Header - Always visible */}
       <button
         onClick={onToggleExpand}
@@ -76,7 +78,9 @@ export function LabNotebook({ entries, onDeleteEntry, isExpanded, onToggleExpand
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, x: -20 }}
                     transition={{ delay: index * 0.05 }}
-                    className="group p-3 rounded-xl bg-parchment-light hover:bg-parchment border border-gold transition-smooth"
+                    className={`group p-3 rounded-xl bg-parchment-light hover:bg-parchment border border-gold transition-smooth ${
+                      entry.id === newEntryId ? 'new-note-glow' : ''
+                    }`}
                   >
                     <div className="flex items-start gap-3">
                       <div className={`
@@ -101,7 +105,7 @@ export function LabNotebook({ entries, onDeleteEntry, isExpanded, onToggleExpand
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-charcoal/60 line-clamp-2 tracking-wide">
+                        <p className="text-xs text-charcoal line-clamp-2 tracking-wide">
                           {entry.content}
                         </p>
                         {entry.bounds && (

@@ -1,6 +1,12 @@
 import { Bell, Search, User } from 'lucide-react';
+import { FocusModeToggle } from './FocusModeToggle';
 
-export function DashboardHeader() {
+interface DashboardHeaderProps {
+  isFocusMode?: boolean;
+  onFocusModeToggle?: () => void;
+}
+
+export function DashboardHeader({ isFocusMode = false, onFocusModeToggle }: DashboardHeaderProps) {
   return (
     <header className="flex items-center justify-between mb-6">
       <div>
@@ -22,6 +28,11 @@ export function DashboardHeader() {
             className="bg-transparent text-sm text-charcoal placeholder:text-charcoal/40 focus:outline-none w-40 tracking-wide"
           />
         </div>
+
+        {/* Focus Mode Toggle */}
+        {onFocusModeToggle && (
+          <FocusModeToggle isActive={isFocusMode} onToggle={onFocusModeToggle} />
+        )}
 
         {/* Notifications */}
         <button className="relative w-11 h-11 rounded-2xl glass-panel flex items-center justify-center hover:bg-parchment transition-smooth">

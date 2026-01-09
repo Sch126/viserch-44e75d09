@@ -4,8 +4,9 @@ import { VideoPlayer } from '@/components/VideoPlayer';
 import { AIChatSidebar } from '@/components/AIChatSidebar';
 import { LabNotebook, LabEntry } from '@/components/LabNotebook';
 import { PipelineStage } from '@/components/StatusTracker';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const Index = () => {
   const { toast } = useToast();
@@ -14,6 +15,19 @@ const Index = () => {
   const [isRefining, setIsRefining] = useState(false);
   const [labEntries, setLabEntries] = useState<LabEntry[]>([]);
   const [isLabExpanded, setIsLabExpanded] = useState(true);
+  const [isFocusMode, setIsFocusMode] = useState(false);
+  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+  const [newEntryId, setNewEntryId] = useState<string | null>(null);
+
+  // Clear new entry glow after 2 seconds
+  useEffect(() => {
+    if (newEntryId) {
+      const timer = setTimeout(() => {
+        setNewEntryId(null);
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [newEntryId]);
 
   // Simulate pipeline processing
   const handleUpload = useCallback(async (file: File) => {
@@ -62,6 +76,7 @@ const Index = () => {
     };
 
     setLabEntries(prev => [newEntry, ...prev]);
+    setNewEntryId(newEntry.id);
 
     // Auto-add AI explanation
     setTimeout(() => {
@@ -73,6 +88,7 @@ const Index = () => {
         videoTimestamp: '12:34',
       };
       setLabEntries(prev => [explanationEntry, ...prev]);
+      setNewEntryId(explanationEntry.id);
     }, 1000);
 
     toast({
@@ -85,31 +101,95 @@ const Index = () => {
     setLabEntries(prev => prev.filter(entry => entry.id !== id));
   }, []);
 
+  const sidebarVariants = {
+    visible: { 
+      width: 'auto',
+      opacity: 1,
+      marginRight: '1rem',
+      transition: { duration: 0.3, ease: [0.4, 0, 0.2, 1] as const }
+    },
+    hidden: { 
+      width: 0,
+      opacity: 0,
+      marginRight: 0,
+      transition: { duration: 0.3, ease: [0.4, 0, 0.2, 1] as const }
+    }
+  };
+
+  const labNotebookVariants = {
+    visible: { 
+      height: 'auto',
+      opacity: 1,
+      marginTop: '1rem',
+      transition: { duration: 0.3, ease: [0.4, 0, 0.2, 1] as const }
+    },
+    hidden: { 
+      height: 0,
+      opacity: 0,
+      marginTop: 0,
+      transition: { duration: 0.3, ease: [0.4, 0, 0.2, 1] as const }
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-linen p-6">
+    <div className="min-h-screen bg-parchment p-6">
       <div className="max-w-[1800px] mx-auto h-[calc(100vh-48px)] flex flex-col">
-        <DashboardHeader />
+        <DashboardHeader 
+          isFocusMode={isFocusMode}
+          onFocusModeToggle={() => setIsFocusMode(!isFocusMode)}
+        />
         
         {/* Main Bento Box Layout */}
         <div className="flex-1 flex gap-4 min-h-0">
-          <ProjectSidebar 
-            onUpload={handleUpload}
-            isProcessing={isProcessing}
-            pipelineStage={pipelineStage}
-            isRefining={isRefining}
-          />
+          <AnimatePresence>
+            {!isFocusMode && (
+              <motion.div
+                initial="visible"
+                animate="visible"
+                exit="hidden"
+                variants={sidebarVariants}
+                className="overflow-hidden"
+              >
+                <ProjectSidebar 
+                  onUpload={handleUpload}
+                  isProcessing={isProcessing}
+                  pipelineStage={pipelineStage}
+                  isRefining={isRefining}
+                  isVideoPlaying={isVideoPlaying}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
           
           <div className="flex-1 flex flex-col gap-4 min-w-0">
-            <VideoPlayer onCircleCapture={handleCircleCapture} />
-            <LabNotebook 
-              entries={labEntries}
-              onDeleteEntry={handleDeleteEntry}
-              isExpanded={isLabExpanded}
-              onToggleExpand={() => setIsLabExpanded(!isLabExpanded)}
+            <VideoPlayer 
+              onCircleCapture={handleCircleCapture}
+              isPlaying={isVideoPlaying}
+              onPlayStateChange={setIsVideoPlaying}
             />
+            <AnimatePresence>
+              {!isFocusMode && (
+                <motion.div
+                  initial="visible"
+                  animate="visible"
+                  exit="hidden"
+                  variants={labNotebookVariants}
+                  className="overflow-hidden"
+                >
+                  <LabNotebook 
+                    entries={labEntries}
+                    onDeleteEntry={handleDeleteEntry}
+                    isExpanded={isLabExpanded}
+                    onToggleExpand={() => setIsLabExpanded(!isLabExpanded)}
+                    isVideoPlaying={isVideoPlaying}
+                    newEntryId={newEntryId}
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
           
-          <AIChatSidebar />
+          <AIChatSidebar isVideoPaused={!isVideoPlaying} />
         </div>
       </div>
     </div>
