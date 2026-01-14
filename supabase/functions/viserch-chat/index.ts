@@ -33,18 +33,88 @@ You must be a "Linguistic Chameleon" - adapt your communication style to match t
 
 Remember: Clarity over complexity. Action over abstraction. Adapt to connect.`;
 
+// Input validation schema
+interface ChatMessage {
+  role: 'user' | 'assistant' | 'system';
+  content: string;
+}
+
+interface ChatRequest {
+  messages: ChatMessage[];
+}
+
+function validateChatRequest(body: unknown): ChatRequest {
+  if (!body || typeof body !== 'object') {
+    throw new Error('Invalid request body');
+  }
+
+  const req = body as Record<string, unknown>;
+  
+  if (!Array.isArray(req.messages)) {
+    throw new Error('Messages must be an array');
+  }
+
+  if (req.messages.length === 0) {
+    throw new Error('Messages array cannot be empty');
+  }
+
+  if (req.messages.length > 50) {
+    throw new Error('Too many messages (max 50)');
+  }
+
+  const validRoles = ['user', 'assistant', 'system'];
+  
+  const validatedMessages: ChatMessage[] = req.messages.map((msg, index) => {
+    if (!msg || typeof msg !== 'object') {
+      throw new Error(`Message at index ${index} is invalid`);
+    }
+
+    const message = msg as Record<string, unknown>;
+    
+    if (typeof message.role !== 'string' || !validRoles.includes(message.role)) {
+      throw new Error(`Invalid role at message ${index}`);
+    }
+
+    if (typeof message.content !== 'string') {
+      throw new Error(`Content must be a string at message ${index}`);
+    }
+
+    // Sanitize content: limit length and strip potential injection patterns
+    const sanitizedContent = message.content
+      .slice(0, 10000) // Max 10k chars per message
+      .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '') // Remove script tags
+      .trim();
+
+    if (sanitizedContent.length === 0) {
+      throw new Error(`Empty content at message ${index}`);
+    }
+
+    return {
+      role: message.role as ChatMessage['role'],
+      content: sanitizedContent,
+    };
+  });
+
+  return { messages: validatedMessages };
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { messages } = await req.json();
+    // Parse and validate input
+    const rawBody = await req.json();
+    const { messages } = validateChatRequest(rawBody);
+    
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
+
+    console.log(`Processing chat request with ${messages.length} messages`);
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -64,12 +134,14 @@ serve(async (req) => {
 
     if (!response.ok) {
       if (response.status === 429) {
+        console.error("Rate limit exceeded");
         return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }), {
           status: 429,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
       if (response.status === 402) {
+        console.error("Usage limit reached");
         return new Response(JSON.stringify({ error: "Usage limit reached. Please add credits to continue." }), {
           status: 402,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -87,9 +159,18 @@ serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
     });
   } catch (error) {
-    console.error("viserch-chat error:", error);
-    return new Response(JSON.stringify({ error: error instanceof Error ? error.message : "Unknown error" }), {
-      status: 500,
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    console.error("viserch-chat error:", errorMessage);
+    
+    // Return user-friendly error but log technical details
+    const isValidationError = errorMessage.includes('Invalid') || 
+                              errorMessage.includes('must be') || 
+                              errorMessage.includes('cannot be');
+    
+    return new Response(JSON.stringify({ 
+      error: isValidationError ? errorMessage : "Something went wrong. Please try again."
+    }), {
+      status: isValidationError ? 400 : 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }

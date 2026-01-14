@@ -1,4 +1,4 @@
-import { Tldraw, Editor, TLShapeId, createShapeId } from 'tldraw';
+import { Tldraw, Editor, TLShapeId, createShapeId, TLRecord, TLGeoShape, TLDrawShape } from 'tldraw';
 import 'tldraw/tldraw.css';
 import { useState, useCallback, useEffect } from 'react';
 import { Pencil, Type, Eraser, Circle, Trash2 } from 'lucide-react';
@@ -9,6 +9,16 @@ interface DrawingOverlayProps {
 }
 
 type DrawingMode = 'ink' | 'text' | 'select';
+
+// Type guard for geo shapes
+function isGeoShape(record: TLRecord): record is TLGeoShape {
+  return record.typeName === 'shape' && 'type' in record && record.type === 'geo';
+}
+
+// Type guard for draw shapes
+function isDrawShape(record: TLRecord): record is TLDrawShape {
+  return record.typeName === 'shape' && 'type' in record && record.type === 'draw';
+}
 
 export function DrawingOverlay({ isActive, onCircleCapture }: DrawingOverlayProps) {
   const [mode, setMode] = useState<DrawingMode>('ink');
@@ -21,39 +31,33 @@ export function DrawingOverlay({ isActive, onCircleCapture }: DrawingOverlayProp
     // Listen for shape changes to detect circles
     editor.store.listen(({ changes }) => {
       Object.values(changes.added).forEach((record) => {
-        if (record.typeName === 'shape' && record.type === 'geo') {
-          const shape = record as any;
-          if (shape.props?.geo === 'ellipse') {
-            const bounds = editor.getShapePageBounds(shape.id);
-            if (bounds && onCircleCapture) {
-              onCircleCapture({
-                x: bounds.x,
-                y: bounds.y,
-                width: bounds.width,
-                height: bounds.height,
-              });
-            }
+        if (isGeoShape(record) && record.props?.geo === 'ellipse') {
+          const bounds = editor.getShapePageBounds(record.id);
+          if (bounds && onCircleCapture) {
+            onCircleCapture({
+              x: bounds.x,
+              y: bounds.y,
+              width: bounds.width,
+              height: bounds.height,
+            });
           }
         }
       });
 
       // Also detect closed freehand drawings (potential circles)
       Object.values(changes.updated).forEach(([, record]) => {
-        if (record.typeName === 'shape' && record.type === 'draw') {
-          const shape = record as any;
-          if (shape.props?.isComplete) {
-            const bounds = editor.getShapePageBounds(shape.id as TLShapeId);
-            if (bounds && onCircleCapture) {
-              // Check if it's roughly circular (aspect ratio close to 1)
-              const aspectRatio = bounds.width / bounds.height;
-              if (aspectRatio > 0.7 && aspectRatio < 1.4 && bounds.width > 50) {
-                onCircleCapture({
-                  x: bounds.x,
-                  y: bounds.y,
-                  width: bounds.width,
-                  height: bounds.height,
-                });
-              }
+        if (isDrawShape(record) && record.props?.isComplete) {
+          const bounds = editor.getShapePageBounds(record.id as TLShapeId);
+          if (bounds && onCircleCapture) {
+            // Check if it's roughly circular (aspect ratio close to 1)
+            const aspectRatio = bounds.width / bounds.height;
+            if (aspectRatio > 0.7 && aspectRatio < 1.4 && bounds.width > 50) {
+              onCircleCapture({
+                x: bounds.x,
+                y: bounds.y,
+                width: bounds.width,
+                height: bounds.height,
+              });
             }
           }
         }
