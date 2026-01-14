@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { VoiceChatButton } from './VoiceChatButton';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useViserchChat } from '@/hooks/useViserchChat';
+import ReactMarkdown from 'react-markdown';
 
 const WELCOME_MESSAGE = {
   id: 'welcome',
@@ -96,15 +97,29 @@ export function AIChatSidebar({ isVideoPaused = true }: AIChatSidebarProps) {
                 )}
               </motion.div>
               <motion.div
-                className={`flex-1 p-4 rounded-2xl text-sm leading-relaxed tracking-wide chat-bubble ${
+                className={`flex-1 p-4 rounded-2xl text-sm leading-relaxed tracking-wide chat-bubble prose prose-sm max-w-none ${
                   message.role === 'user'
-                    ? 'bg-slate-blue text-white rounded-tr-md'
-                    : 'bg-parchment-light text-charcoal rounded-tl-md'
+                    ? 'bg-slate-blue text-white rounded-tr-md prose-invert'
+                    : 'bg-parchment-light text-charcoal rounded-tl-md prose-charcoal'
                 }`}
                 whileHover={{ scale: 1.01 }}
                 transition={{ type: "spring", stiffness: 400 }}
               >
-                {message.content || (
+                {message.content ? (
+                  <ReactMarkdown
+                    components={{
+                      p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                      strong: ({ children }) => <strong className="font-bold">{children}</strong>,
+                      em: ({ children }) => <em className="italic">{children}</em>,
+                      ul: ({ children }) => <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>,
+                      ol: ({ children }) => <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>,
+                      li: ({ children }) => <li className="leading-relaxed">{children}</li>,
+                      code: ({ children }) => <code className="bg-charcoal/10 px-1 py-0.5 rounded text-xs">{children}</code>,
+                    }}
+                  >
+                    {message.content}
+                  </ReactMarkdown>
+                ) : (
                   <motion.span 
                     className="text-charcoal/50"
                     animate={{ opacity: [0.4, 1, 0.4] }}
