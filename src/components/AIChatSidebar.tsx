@@ -14,6 +14,7 @@ const WELCOME_MESSAGE = {
 
 interface AIChatSidebarProps {
   isVideoPaused?: boolean;
+  onTypingStart?: () => void;
 }
 
 // Component for streaming text with character-by-character animation
@@ -123,7 +124,7 @@ function AIStatusIndicator({ isThinking, isListening }: { isThinking: boolean; i
   );
 }
 
-export function AIChatSidebar({ isVideoPaused = true }: AIChatSidebarProps) {
+export function AIChatSidebar({ isVideoPaused = true, onTypingStart }: AIChatSidebarProps) {
   const { messages, isLoading, sendMessage, clearMessages } = useViserchChat([WELCOME_MESSAGE]);
   const [input, setInput] = useState('');
   const [isVoiceActive, setIsVoiceActive] = useState(false);
@@ -131,6 +132,14 @@ export function AIChatSidebar({ isVideoPaused = true }: AIChatSidebarProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [userIsScrolling, setUserIsScrolling] = useState(false);
   const scrollTimeoutRef = useRef<NodeJS.Timeout>();
+  
+  // Handle typing to trigger cinematic focus
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInput(e.target.value);
+    if (e.target.value.length > 0) {
+      onTypingStart?.();
+    }
+  };
 
   // Smart scroll: only auto-scroll if user isn't reading old messages
   const scrollToBottom = useCallback(() => {
@@ -320,7 +329,7 @@ export function AIChatSidebar({ isVideoPaused = true }: AIChatSidebarProps) {
           <input
             type="text"
             value={input}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={handleInputChange}
             onKeyDown={handleKeyDown}
             placeholder="Ask me anything..."
             disabled={isLoading}

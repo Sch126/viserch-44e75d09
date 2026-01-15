@@ -1,15 +1,17 @@
 import { Play, Pause, Volume2, Maximize2, SkipBack, SkipForward, Settings, Pencil, X } from 'lucide-react';
 import { useState, useCallback } from 'react';
 import { DrawingOverlay } from './DrawingOverlay';
+import { SpotlightCard } from './SpotlightCard';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface VideoPlayerProps {
   onCircleCapture?: (bounds: { x: number; y: number; width: number; height: number }) => void;
   isPlaying?: boolean;
   onPlayStateChange?: (isPlaying: boolean) => void;
+  onDrawingStart?: () => void;
 }
 
-export function VideoPlayer({ onCircleCapture, isPlaying: externalIsPlaying, onPlayStateChange }: VideoPlayerProps) {
+export function VideoPlayer({ onCircleCapture, isPlaying: externalIsPlaying, onPlayStateChange, onDrawingStart }: VideoPlayerProps) {
   const [internalIsPlaying, setInternalIsPlaying] = useState(false);
   const isPlaying = externalIsPlaying ?? internalIsPlaying;
   const [progress, setProgress] = useState(35);
@@ -24,10 +26,15 @@ export function VideoPlayer({ onCircleCapture, isPlaying: externalIsPlaying, onP
   const handleCircleCapture = useCallback((bounds: { x: number; y: number; width: number; height: number }) => {
     console.log('Circle captured:', bounds);
     onCircleCapture?.(bounds);
-  }, [onCircleCapture]);
+    onDrawingStart?.();
+  }, [onCircleCapture, onDrawingStart]);
 
   return (
-    <div className={`glass-panel active-glow-edge flex-1 flex flex-col min-h-[400px] p-6 transition-smooth ${!isPlaying ? 'interaction-highlight' : ''}`}>
+    <SpotlightCard 
+      className={`glass-panel active-glow-edge flex-1 flex flex-col min-h-[400px] p-6 transition-smooth ${!isPlaying ? 'interaction-highlight' : ''}`}
+      spotlightColor="rgba(128, 151, 179, 0.5)"
+      spotlightSize={250}
+    >
       {/* Video Container */}
       <div className="relative flex-1 bg-charcoal/5 rounded-[32px] overflow-hidden mb-4 border border-gold">
         {/* Drawing Overlay */}
@@ -198,6 +205,6 @@ export function VideoPlayer({ onCircleCapture, isPlaying: externalIsPlaying, onP
           </div>
         </div>
       </div>
-    </div>
+    </SpotlightCard>
   );
 }

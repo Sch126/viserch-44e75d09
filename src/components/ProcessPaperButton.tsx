@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { FileUp, X, FileText, Loader2 } from 'lucide-react';
+import { MagneticButton } from './MagneticButton';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface ProcessPaperButtonProps {
@@ -122,35 +123,37 @@ export function ProcessPaperButton({ onUpload, isProcessing }: ProcessPaperButto
       </AnimatePresence>
 
       {selectedFile && (
-        <motion.button
+        <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          onClick={handleProcess}
-          disabled={isProcessing}
-          className={`
-            w-full py-3 rounded-2xl font-medium text-sm transition-smooth tracking-wide
-            flex items-center justify-center gap-2
-            ${isProcessing 
-              ? 'bg-slate-blue/50 text-white cursor-wait' 
-              : 'bg-slate-blue text-white hover:bg-slate-blue-dark'
-            }
-          `}
-          style={!isProcessing ? { boxShadow: '0 0 30px rgba(128, 151, 179, 0.3)' } : {}}
-          whileHover={!isProcessing ? { scale: 1.02 } : {}}
-          whileTap={!isProcessing ? { scale: 0.98 } : {}}
         >
-          {isProcessing ? (
-            <>
-              <Loader2 className="w-4 h-4 animate-spin" />
-              Processing...
-            </>
-          ) : (
-            <>
-              <FileUp className="w-4 h-4" />
-              Process Paper
-            </>
-          )}
-        </motion.button>
+          <MagneticButton
+            onClick={handleProcess}
+            disabled={isProcessing}
+            strength={0.4}
+            radius={120}
+            className={`
+              w-full py-3 rounded-2xl font-medium text-sm transition-smooth tracking-wide
+              flex items-center justify-center gap-2
+              ${isProcessing 
+                ? 'bg-slate-blue/50 text-white cursor-wait' 
+                : 'bg-slate-blue text-white hover:bg-slate-blue-dark'
+              }
+            `}
+          >
+            {isProcessing ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Processing...
+              </>
+            ) : (
+              <>
+                <FileUp className="w-4 h-4" />
+                Process Paper
+              </>
+            )}
+          </MagneticButton>
+        </motion.div>
       )}
     </div>
   );

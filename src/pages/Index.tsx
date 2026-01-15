@@ -4,10 +4,11 @@ import { VideoPlayer } from '@/components/VideoPlayer';
 import { AIChatSidebar } from '@/components/AIChatSidebar';
 import { LabNotebook, LabEntry } from '@/components/LabNotebook';
 import { PipelineStage } from '@/components/StatusTracker';
+import { LivingBackground } from '@/components/LivingBackground';
 import { useState, useCallback, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { useCinematicFocus } from '@/hooks/useCinematicFocus';
 import { motion, AnimatePresence } from 'framer-motion';
-
 const Index = () => {
   const { toast } = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
@@ -18,7 +19,9 @@ const Index = () => {
   const [isFocusMode, setIsFocusMode] = useState(false);
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const [newEntryId, setNewEntryId] = useState<string | null>(null);
-
+  
+  // Cinematic focus - dims other panels when user is actively engaged
+  const { isActive: isCinematicActive, triggerFocus: triggerCinematicFocus } = useCinematicFocus(3000);
   // Clear new entry glow after 2 seconds
   useEffect(() => {
     if (newEntryId) {
@@ -132,8 +135,11 @@ const Index = () => {
   };
 
   return (
-    <div className="h-screen overflow-y-auto bg-parchment p-6 scrollbar-ghost-gold">
-      <div className="max-w-[1800px] mx-auto min-h-full flex flex-col">
+    <div className="h-screen overflow-y-auto bg-parchment p-6 scrollbar-ghost-gold magnetic-container relative">
+      {/* Living Background - slow mesh gradients */}
+      <LivingBackground />
+      
+      <div className="max-w-[1800px] mx-auto min-h-full flex flex-col relative z-10">
         <DashboardHeader 
           isFocusMode={isFocusMode}
           onFocusModeToggle={() => setIsFocusMode(!isFocusMode)}
@@ -150,13 +156,18 @@ const Index = () => {
                 variants={sidebarVariants}
                 className="overflow-hidden"
               >
-                <ProjectSidebar 
-                  onUpload={handleUpload}
-                  isProcessing={isProcessing}
-                  pipelineStage={pipelineStage}
-                  isRefining={isRefining}
-                  isVideoPlaying={isVideoPlaying}
-                />
+                <motion.div
+                  animate={{ opacity: isCinematicActive ? 0.3 : 1 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <ProjectSidebar 
+                    onUpload={handleUpload}
+                    isProcessing={isProcessing}
+                    pipelineStage={pipelineStage}
+                    isRefining={isRefining}
+                    isVideoPlaying={isVideoPlaying}
+                  />
+                </motion.div>
               </motion.div>
             )}
           </AnimatePresence>
@@ -166,6 +177,7 @@ const Index = () => {
               onCircleCapture={handleCircleCapture}
               isPlaying={isVideoPlaying}
               onPlayStateChange={setIsVideoPlaying}
+              onDrawingStart={triggerCinematicFocus}
             />
             <AnimatePresence>
               {!isFocusMode && (
@@ -176,20 +188,28 @@ const Index = () => {
                   variants={labNotebookVariants}
                   className="overflow-hidden"
                 >
-                  <LabNotebook 
-                    entries={labEntries}
-                    onDeleteEntry={handleDeleteEntry}
-                    isExpanded={isLabExpanded}
-                    onToggleExpand={() => setIsLabExpanded(!isLabExpanded)}
-                    isVideoPlaying={isVideoPlaying}
-                    newEntryId={newEntryId}
-                  />
+                  <motion.div
+                    animate={{ opacity: isCinematicActive ? 0.3 : 1 }}
+                    transition={{ duration: 0.5 }}
+                  >
+                    <LabNotebook 
+                      entries={labEntries}
+                      onDeleteEntry={handleDeleteEntry}
+                      isExpanded={isLabExpanded}
+                      onToggleExpand={() => setIsLabExpanded(!isLabExpanded)}
+                      isVideoPlaying={isVideoPlaying}
+                      newEntryId={newEntryId}
+                    />
+                  </motion.div>
                 </motion.div>
               )}
             </AnimatePresence>
           </div>
           
-          <AIChatSidebar isVideoPaused={!isVideoPlaying} />
+          <AIChatSidebar 
+            isVideoPaused={!isVideoPlaying} 
+            onTypingStart={triggerCinematicFocus}
+          />
         </div>
       </div>
     </div>
