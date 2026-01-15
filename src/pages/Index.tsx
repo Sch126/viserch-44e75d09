@@ -132,8 +132,8 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-parchment p-6">
-      <div className="max-w-[1800px] mx-auto h-[calc(100vh-48px)] flex flex-col">
+    <div className="h-screen overflow-y-auto bg-parchment p-6 scrollbar-ghost-gold">
+      <div className="max-w-[1800px] mx-auto min-h-full flex flex-col">
         <DashboardHeader 
           isFocusMode={isFocusMode}
           onFocusModeToggle={() => setIsFocusMode(!isFocusMode)}
