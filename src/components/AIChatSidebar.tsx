@@ -18,77 +18,55 @@ interface AIChatSidebarProps {
 
 // Component for streaming text with character-by-character animation
 function StreamingText({ content, isStreaming }: { content: string; isStreaming: boolean }) {
-  const [displayedContent, setDisplayedContent] = useState('');
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const prevContentRef = useRef('');
-
-  useEffect(() => {
-    // If content grew, we need to animate new characters
-    if (content.length > prevContentRef.current.length) {
-      const newChars = content.slice(prevContentRef.current.length);
-      prevContentRef.current = content;
-      
-      // Animate new characters
-      let charIndex = 0;
-      const interval = setInterval(() => {
-        if (charIndex < newChars.length) {
-          setDisplayedContent(prev => prev + newChars[charIndex]);
-          charIndex++;
-        } else {
-          clearInterval(interval);
-        }
-      }, 8); // 8ms per character for smooth streaming
-
-      return () => clearInterval(interval);
-    } else if (content !== prevContentRef.current) {
-      // Content was reset/replaced
-      setDisplayedContent(content);
-      prevContentRef.current = content;
-    }
-  }, [content]);
-
-  // Initial sync
-  useEffect(() => {
-    if (!prevContentRef.current && content) {
-      setDisplayedContent('');
-      prevContentRef.current = '';
-    }
-  }, []);
-
-  if (!displayedContent) {
-    return (
-      <motion.span 
-        className="text-charcoal/50"
-        animate={{ opacity: [0.4, 1, 0.4] }}
-        transition={{ duration: 1.2, repeat: Infinity }}
-      >
-        Thinking...
-      </motion.span>
-    );
-  }
-
+  // Clean content - ensure no undefined/null values are rendered
+  const cleanContent = content || '';
+  
+  // Simple opacity-based reveal animation using framer-motion
+  // This prevents the character-mangling bug from the previous interval-based approach
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 0.15 }}
+      transition={{ duration: 0.15, ease: "easeOut" }}
+      key={cleanContent.length} // Re-trigger animation on content change
     >
       <ReactMarkdown
         components={{
-          p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
-          strong: ({ children }) => <strong className="font-bold">{children}</strong>,
-          em: ({ children }) => <em className="italic">{children}</em>,
-          ul: ({ children }) => <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>,
-          ol: ({ children }) => <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>,
-          li: ({ children }) => <li className="leading-relaxed">{children}</li>,
-          code: ({ children }) => <code className="bg-charcoal/10 px-1 py-0.5 rounded text-xs">{children}</code>,
+          p: ({ children }) => {
+            if (children === undefined || children === null) return null;
+            return <p className="mb-2 last:mb-0">{children}</p>;
+          },
+          strong: ({ children }) => {
+            if (children === undefined || children === null) return null;
+            return <strong className="font-bold">{children}</strong>;
+          },
+          em: ({ children }) => {
+            if (children === undefined || children === null) return null;
+            return <em className="italic">{children}</em>;
+          },
+          ul: ({ children }) => {
+            if (children === undefined || children === null) return null;
+            return <ul className="list-disc list-inside mb-2 space-y-1">{children}</ul>;
+          },
+          ol: ({ children }) => {
+            if (children === undefined || children === null) return null;
+            return <ol className="list-decimal list-inside mb-2 space-y-1">{children}</ol>;
+          },
+          li: ({ children }) => {
+            if (children === undefined || children === null) return null;
+            return <li className="leading-relaxed">{children}</li>;
+          },
+          code: ({ children }) => {
+            if (children === undefined || children === null) return null;
+            return <code className="bg-charcoal/10 px-1 py-0.5 rounded text-xs">{children}</code>;
+          },
         }}
       >
-        {displayedContent}
+        {cleanContent}
       </ReactMarkdown>
-      {isStreaming && (
+      {isStreaming && cleanContent.length > 0 && (
         <motion.span
-          className="inline-block w-1.5 h-4 bg-slate-blue/60 ml-0.5 align-middle"
+          className="inline-block w-1 h-4 bg-slate-blue ml-1 align-middle"
           animate={{ opacity: [1, 0, 1] }}
           transition={{ duration: 0.8, repeat: Infinity }}
         />
