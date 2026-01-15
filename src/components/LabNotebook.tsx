@@ -60,7 +60,7 @@ export function LabNotebook({ entries, onDeleteEntry, isExpanded, onToggleExpand
             transition={{ duration: 0.3 }}
             className="overflow-hidden"
           >
-            <div className="mt-4 pt-4 border-t border-gold space-y-3 max-h-[300px] overflow-y-auto scrollbar-thin">
+            <div className="mt-4 pt-4 border-t border-gold space-y-3 max-h-[300px] overflow-y-auto scrollbar-ghost-gold">
               {entries.length === 0 ? (
                 <div className="text-center py-8">
                   <div className="w-12 h-12 rounded-2xl bg-parchment-light flex items-center justify-center mx-auto mb-3">
