@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BookOpen, Circle, MessageSquare, Trash2, ChevronDown, ChevronUp, Image } from 'lucide-react';
+import { SpotlightCard } from './SpotlightCard';
 
 export interface LabEntry {
   id: string;
@@ -25,7 +26,11 @@ export function LabNotebook({ entries, onDeleteEntry, isExpanded, onToggleExpand
   const explanationCount = entries.filter(e => e.type === 'explanation').length;
 
   return (
-    <div className={`glass-panel flex flex-col p-6 transition-smooth ${isVideoPlaying ? 'sidebar-dimmed' : ''}`}>
+    <SpotlightCard 
+      className={`glass-panel flex flex-col p-6 transition-smooth ${isVideoPlaying ? 'sidebar-dimmed' : ''}`}
+      spotlightColor="rgba(128, 151, 179, 0.4)"
+      spotlightSize={180}
+    >
       {/* Header - Always visible */}
       <button
         onClick={onToggleExpand}
@@ -130,6 +135,6 @@ export function LabNotebook({ entries, onDeleteEntry, isExpanded, onToggleExpand
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </SpotlightCard>
   );
 }

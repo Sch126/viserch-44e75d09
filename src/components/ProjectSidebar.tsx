@@ -1,6 +1,7 @@
 import { FolderOpen, Plus, MoreHorizontal, Circle } from 'lucide-react';
 import { ProcessPaperButton } from './ProcessPaperButton';
 import { StatusTracker, PipelineStage } from './StatusTracker';
+import { SpotlightCard } from './SpotlightCard';
 import { motion } from 'framer-motion';
 
 interface Project {
@@ -71,40 +72,46 @@ export function ProjectSidebar({ onUpload, isProcessing, pipelineStage, isRefini
       </div>
 
       {/* Projects List */}
-      <div className="flex-1 space-y-2 overflow-y-auto scrollbar-thin">
+      <div className="flex-1 space-y-2 overflow-y-auto scrollbar-ghost-gold">
         {projects.map((project, index) => (
-          <motion.div
+          <SpotlightCard
             key={project.id}
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: index * 0.05 }}
-            className="group p-4 rounded-2xl bg-parchment-light hover:bg-parchment border border-gold hover:border-gold cursor-pointer transition-smooth"
-            whileHover={{ scale: 1.01 }}
+            className="rounded-2xl"
+            spotlightColor="rgba(128, 151, 179, 0.5)"
+            spotlightSize={150}
           >
-            <div className="flex items-start justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <div className={`w-2 h-2 ${statusColors[project.status]} rounded-full`} />
-                <span className="text-sm font-medium text-charcoal leading-tight tracking-wide">
-                  {project.title}
-                </span>
+            <motion.div
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: index * 0.05 }}
+              className="group p-4 rounded-2xl bg-parchment-light hover:bg-parchment border border-gold hover:border-gold cursor-pointer transition-smooth"
+              whileHover={{ scale: 1.01 }}
+            >
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <div className={`w-2 h-2 ${statusColors[project.status]} rounded-full`} />
+                  <span className="text-sm font-medium text-charcoal leading-tight tracking-wide">
+                    {project.title}
+                  </span>
+                </div>
+                <button className="opacity-0 group-hover:opacity-100 transition-smooth">
+                  <MoreHorizontal className="w-4 h-4 text-charcoal/50" />
+                </button>
               </div>
-              <button className="opacity-0 group-hover:opacity-100 transition-smooth">
-                <MoreHorizontal className="w-4 h-4 text-charcoal/50" />
-              </button>
-            </div>
-            
-            <div className="space-y-2">
-              <div className="h-1.5 bg-charcoal/10 rounded-full overflow-hidden">
-                <motion.div
-                  className="h-full bg-slate-blue rounded-full"
-                  initial={{ width: 0 }}
-                  animate={{ width: `${project.progress}%` }}
-                  transition={{ duration: 0.8, delay: index * 0.1 }}
-                />
+              
+              <div className="space-y-2">
+                <div className="h-1.5 bg-charcoal/10 rounded-full overflow-hidden">
+                  <motion.div
+                    className="h-full bg-slate-blue rounded-full"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${project.progress}%` }}
+                    transition={{ duration: 0.8, delay: index * 0.1 }}
+                  />
+                </div>
+                <span className="text-xs text-charcoal/50 tracking-wide">{project.progress}% complete</span>
               </div>
-              <span className="text-xs text-charcoal/50 tracking-wide">{project.progress}% complete</span>
-            </div>
-          </motion.div>
+            </motion.div>
+          </SpotlightCard>
         ))}
       </div>
 
