@@ -14,6 +14,53 @@ export type Database = {
   }
   public: {
     Tables: {
+      knowledge_base: {
+        Row: {
+          category: string | null
+          confidence_score: number | null
+          created_at: string
+          fact: string
+          id: string
+          line_reference: string | null
+          page_number: number | null
+          pdf_name: string
+          project_id: string | null
+          user_id: string
+        }
+        Insert: {
+          category?: string | null
+          confidence_score?: number | null
+          created_at?: string
+          fact: string
+          id?: string
+          line_reference?: string | null
+          page_number?: number | null
+          pdf_name: string
+          project_id?: string | null
+          user_id: string
+        }
+        Update: {
+          category?: string | null
+          confidence_score?: number | null
+          created_at?: string
+          fact?: string
+          id?: string
+          line_reference?: string | null
+          page_number?: number | null
+          pdf_name?: string
+          project_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "knowledge_base_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lab_entries: {
         Row: {
           bounds: Json | null
