@@ -9,6 +9,24 @@ import { useState, useCallback, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useCinematicFocus } from '@/hooks/useCinematicFocus';
 import { motion, AnimatePresence } from 'framer-motion';
+import { supabase } from '@/integrations/supabase/client';
+
+interface TesseractResponse {
+  storyboard: Array<{
+    timestamp: string;
+    visual_description: string;
+    narration: string;
+  }>;
+  analogies: Array<{
+    concept: string;
+    simple_explanation: string;
+    scientific_proof: string;
+    risk_level: "safe" | "moderate" | "risky";
+  }>;
+  focus_score: number;
+  facts_extracted: number;
+  error?: string;
+}
 const Index = () => {
   const { toast } = useToast();
   const [isProcessing, setIsProcessing] = useState(false);
@@ -32,40 +50,91 @@ const Index = () => {
     }
   }, [newEntryId]);
 
-  // Simulate pipeline processing
+  // Tesseract Agent Pipeline processing
   const handleUpload = useCallback(async (file: File) => {
     setIsProcessing(true);
     toast({
       title: "Processing Started",
-      description: `Analyzing "${file.name}"...`,
+      description: `Analyzing "${file.name}" with Tesseract Pipeline...`,
     });
 
-    const stages: PipelineStage[] = [
-      'knowledge-architect',
-      'metaphorical-director',
-      'manim-engineer',
-      'adhd-critic',
-    ];
+    try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast({
+          title: "Authentication Required",
+          description: "Please sign in to process documents.",
+          variant: "destructive"
+        });
+        setIsProcessing(false);
+        return;
+      }
 
-    for (const stage of stages) {
-      setPipelineStage(stage);
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      // Stage 1: Knowledge Architect (Dimension X)
+      setPipelineStage('knowledge-architect');
+      
+      // Create FormData for the edge function
+      const formData = new FormData();
+      formData.append('pdf', file);
+      formData.append('user_id', user.id);
+      
+      // Call the analyze-multidimensional edge function
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze-multidimensional`,
+        {
+          method: 'POST',
+          body: formData,
+          headers: {
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+        }
+      );
 
-      // Simulate ADHD Critic flagging an issue 50% of the time
-      if (stage === 'adhd-critic' && Math.random() > 0.5) {
+      // Update stages as we process
+      setPipelineStage('metaphorical-director');
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      setPipelineStage('manim-engineer');
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      setPipelineStage('adhd-critic');
+
+      const result: TesseractResponse = await response.json();
+
+      if (result.error) {
+        throw new Error(result.error);
+      }
+
+      // Check if any analogies are risky
+      const riskyAnalogies = result.analogies.filter(a => a.risk_level === 'risky');
+      if (riskyAnalogies.length > 0) {
         setIsRefining(true);
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        await new Promise(resolve => setTimeout(resolve, 1500));
         setIsRefining(false);
       }
-    }
 
-    setPipelineStage('complete');
-    setIsProcessing(false);
-    
-    toast({
-      title: "Processing Complete",
-      description: "Your video is ready to view!",
-    });
+      setPipelineStage('complete');
+      
+      toast({
+        title: "Processing Complete",
+        description: `Extracted ${result.facts_extracted} facts. Focus Score: ${result.focus_score}/100`,
+      });
+
+      console.log("Tesseract Pipeline Result:", result);
+
+    } catch (error) {
+      console.error("Pipeline error:", error);
+      toast({
+        title: "Processing Failed",
+        description: error instanceof Error ? error.message : "Unknown error occurred",
+        variant: "destructive"
+      });
+      setPipelineStage('idle');
+    } finally {
+      setIsProcessing(false);
+    }
   }, [toast]);
 
   const handleCircleCapture = useCallback((bounds: { x: number; y: number; width: number; height: number }) => {

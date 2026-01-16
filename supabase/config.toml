@@ -2,3 +2,6 @@ project_id = "wxqmgphyzaiaynlxavlj"
 
 [functions.viserch-chat]
 verify_jwt = false
+
+[functions.analyze-multidimensional]
+verify_jwt = false
