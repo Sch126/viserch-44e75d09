@@ -25,6 +25,7 @@ export type Database = {
           page_number: number | null
           pdf_name: string
           project_id: string | null
+          storyboard_json: Json | null
           user_id: string
         }
         Insert: {
@@ -37,6 +38,7 @@ export type Database = {
           page_number?: number | null
           pdf_name: string
           project_id?: string | null
+          storyboard_json?: Json | null
           user_id: string
         }
         Update: {
@@ -49,6 +51,7 @@ export type Database = {
           page_number?: number | null
           pdf_name?: string
           project_id?: string | null
+          storyboard_json?: Json | null
           user_id?: string
         }
         Relationships: [
