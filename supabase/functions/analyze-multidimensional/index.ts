@@ -149,6 +149,8 @@ Provide the original scientific proof for each concept.`;
 
     // ============ SAVE FACTS TO DATABASE ============
     console.log("Saving facts to knowledge_base...");
+    console.log("User ID type:", typeof userId, "Value:", userId);
+    console.log("Project ID type:", typeof projectId, "Value:", projectId);
     
     const factsToInsert = extractedFacts.map(fact => ({
       user_id: userId,
@@ -161,18 +163,40 @@ Provide the original scientific proof for each concept.`;
       confidence_score: fact.confidence_score || 0.95,
     }));
 
-    if (factsToInsert.length > 0) {
-      const { data: insertedData, error: insertError } = await supabase
-        .from("knowledge_base")
-        .insert(factsToInsert)
-        .select();
+    let dbSaveSuccess = false;
+    let savedFactsCount = 0;
 
-      if (insertError) {
-        console.error("DATABASE_SAVE_FAILURE:", insertError);
-        // Don't throw - continue with pipeline even if save fails
-      } else {
-        console.log(`Successfully saved ${insertedData?.length || 0} facts to knowledge_base`);
+    if (factsToInsert.length > 0) {
+      try {
+        console.log("Attempting to insert", factsToInsert.length, "facts...");
+        console.log("First fact sample:", JSON.stringify(factsToInsert[0]));
+        
+        const { data: insertedData, error: insertError, status, statusText } = await supabase
+          .from("knowledge_base")
+          .insert(factsToInsert)
+          .select();
+
+        console.log("Supabase response status:", status, statusText);
+
+        if (insertError) {
+          console.error("DATABASE_SAVE_FAILURE:", {
+            code: insertError.code,
+            message: insertError.message,
+            details: insertError.details,
+            hint: insertError.hint,
+          });
+        } else if (status === 201 || status === 200) {
+          dbSaveSuccess = true;
+          savedFactsCount = insertedData?.length || 0;
+          console.log(`SUCCESS: Saved ${savedFactsCount} facts to knowledge_base`);
+        } else {
+          console.error("DATABASE_SAVE_FAILURE: Unexpected status", status);
+        }
+      } catch (dbError) {
+        console.error("DATABASE_SAVE_FAILURE: Exception caught:", dbError);
       }
+    } else {
+      console.log("No facts to insert - extracted facts array was empty");
     }
 
     console.log("DIMENSION Y: Generating narrative...");
