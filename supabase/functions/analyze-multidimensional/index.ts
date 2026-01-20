@@ -143,7 +143,19 @@ Provide the original scientific proof for each concept.`;
               },
               { 
                 role: "user", 
-                content: `Analyze this PDF document and extract all facts. PDF Name: ${pdfFile.name}\n\nRespond with a JSON array of facts. Each fact should have: fact, page_number, line_reference, category, confidence_score.`
+                content: [
+                  {
+                    type: "text",
+                    text: `Analyze this PDF document and extract ALL factual claims, definitions, equations, and data points. PDF Name: ${pdfFile.name}\n\nIMPORTANT: You MUST respond with a JSON object containing an "extracted_facts" array. Each fact should have: fact (string), page_number (number), line_reference (string), category (string), confidence_score (number 0-1).\n\nExample response format:\n{"extracted_facts": [{"fact": "Example fact here", "page_number": 1, "line_reference": "Section 2.1", "category": "definition", "confidence_score": 0.95}]}`
+                  },
+                  {
+                    type: "file",
+                    file: {
+                      filename: pdfFile.name,
+                      file_data: `data:application/pdf;base64,${pdfBase64}`
+                    }
+                  }
+                ]
               }
             ],
           }),
@@ -151,7 +163,9 @@ Provide the original scientific proof for each concept.`;
 
         if (dimensionXResponse.ok) {
           const dimensionXData = await dimensionXResponse.json();
-          dimensionXContent = dimensionXData.choices?.[0]?.message?.content || "[]";
+          dimensionXContent = dimensionXData.choices?.[0]?.message?.content || "{}";
+          console.log("Dimension X raw response length:", dimensionXContent.length);
+          console.log("Dimension X response preview:", dimensionXContent.slice(0, 500));
           break; // Success, exit loop
         } else {
           const errorText = await dimensionXResponse.text();
@@ -168,7 +182,7 @@ Provide the original scientific proof for each concept.`;
       }
     }
     
-    // Parse extracted facts
+    // Parse extracted facts with key mapping for alternative response formats
     let extractedFacts: Array<{
       fact: string;
       page_number?: number;
@@ -178,19 +192,69 @@ Provide the original scientific proof for each concept.`;
     }> = [];
 
     try {
-      // Try to extract JSON from the response
-      const jsonMatch = dimensionXContent.match(/\[[\s\S]*\]/);
-      if (jsonMatch) {
-        extractedFacts = JSON.parse(jsonMatch[0]);
+      // Try to extract JSON object first
+      const jsonObjMatch = dimensionXContent.match(/\{[\s\S]*\}/);
+      if (jsonObjMatch) {
+        const parsed = JSON.parse(jsonObjMatch[0]);
+        
+        // KEY MAPPING: Check for different key names the AI might use
+        const possibleKeys = ['extracted_facts', 'facts', 'insights', 'concepts', 'data', 'findings', 'claims', 'key_facts'];
+        
+        for (const key of possibleKeys) {
+          if (parsed[key] && Array.isArray(parsed[key]) && parsed[key].length > 0) {
+            console.log(`Found facts under key: "${key}" with ${parsed[key].length} items`);
+            extractedFacts = parsed[key].map((item: any) => ({
+              fact: item.fact || item.claim || item.insight || item.concept || item.finding || item.content || item.text || JSON.stringify(item),
+              page_number: item.page_number || item.page || item.pageNumber || null,
+              line_reference: item.line_reference || item.reference || item.section || item.location || null,
+              category: item.category || item.type || item.kind || "general",
+              confidence_score: item.confidence_score || item.confidence || item.score || 0.9
+            }));
+            break;
+          }
+        }
+        
+        // If still empty, check if parsed itself is an array
+        if (extractedFacts.length === 0 && Array.isArray(parsed)) {
+          console.log(`Found facts as root array with ${parsed.length} items`);
+          extractedFacts = parsed.map((item: any) => ({
+            fact: item.fact || item.claim || item.insight || item.concept || JSON.stringify(item),
+            page_number: item.page_number || item.page || null,
+            line_reference: item.line_reference || item.reference || null,
+            category: item.category || item.type || "general",
+            confidence_score: item.confidence_score || item.confidence || 0.9
+          }));
+        }
+      }
+      
+      // Fallback: try parsing as array directly
+      if (extractedFacts.length === 0) {
+        const jsonArrayMatch = dimensionXContent.match(/\[[\s\S]*\]/);
+        if (jsonArrayMatch) {
+          const parsed = JSON.parse(jsonArrayMatch[0]);
+          console.log(`Fallback: Found array with ${parsed.length} items`);
+          extractedFacts = parsed.map((item: any) => ({
+            fact: item.fact || item.claim || item.insight || JSON.stringify(item),
+            page_number: item.page_number || item.page || null,
+            line_reference: item.line_reference || item.reference || null,
+            category: item.category || item.type || "general",
+            confidence_score: item.confidence_score || item.confidence || 0.9
+          }));
+        }
       }
     } catch (parseError) {
       console.error("Failed to parse Dimension X output:", parseError);
-      // Create a single fact from the content
+      console.log("Raw content that failed to parse:", dimensionXContent.slice(0, 1000));
+    }
+    
+    // If still no facts, create fallback from raw content
+    if (extractedFacts.length === 0 && dimensionXContent.length > 10) {
+      console.log("Creating fallback fact from raw content");
       extractedFacts = [{
-        fact: dimensionXContent.slice(0, 500),
+        fact: `Content extracted from ${pdfFile.name}: ${dimensionXContent.slice(0, 500)}`,
         page_number: 1,
         category: "extracted_content",
-        confidence_score: 0.8
+        confidence_score: 0.7
       }];
     }
 
