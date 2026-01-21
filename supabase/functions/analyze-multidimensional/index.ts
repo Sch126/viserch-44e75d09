@@ -6,12 +6,16 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Updated interface with new scene schema
+interface SceneSchema {
+  scene_id: number;
+  timestamp: string;
+  visual_analogy: string;
+  voiceover_script: string;
+}
+
 interface TesseractResponse {
-  storyboard: Array<{
-    timestamp: string;
-    visual_description: string;
-    narration: string;
-  }>;
+  storyboard: SceneSchema[];
   analogies: Array<{
     concept: string;
     simple_explanation: string;
@@ -37,14 +41,6 @@ function arrayBufferToBase64(buffer: ArrayBuffer): string {
   }
   
   return btoa(binary);
-}
-
-// Extract only the relevant snippet for a specific scene/fact
-function extractSnippet(fullContent: string, factIndex: number, factsTotal: number): string {
-  const avgChunkSize = Math.ceil(fullContent.length / Math.max(factsTotal, 1));
-  const start = Math.max(0, factIndex * avgChunkSize - 500);
-  const end = Math.min(fullContent.length, (factIndex + 1) * avgChunkSize + 500);
-  return fullContent.slice(start, end);
 }
 
 serve(async (req) => {
@@ -92,8 +88,19 @@ Output as JSON array.`;
     const PROMPT_DIMENSION_Y = Deno.env.get("PROMPT_DIMENSION_Y") || `You are Dimension Y (The Narrative Director). 
 Transform these extracted facts into a Kurzgesagt-style educational script.
 Create vivid analogies, engaging narratives, and memorable visual descriptions.
-Structure as a storyboard with timestamps and visual cues.
-Make complex concepts accessible while maintaining scientific accuracy.`;
+Make complex concepts accessible while maintaining scientific accuracy.
+
+CRITICAL: You MUST respond with a JSON object containing a "scenes" array with this EXACT structure:
+{
+  "scenes": [
+    {
+      "scene_id": 1,
+      "timestamp": "00:00",
+      "visual_analogy": "Description of what viewers see",
+      "voiceover_script": "What the narrator says"
+    }
+  ]
+}`;
 
     const PROMPT_DIMENSION_Z = Deno.env.get("PROMPT_DIMENSION_Z") || `You are Dimension Z (The Auditor).
 Compare the narrative script against the original facts.
@@ -119,7 +126,6 @@ Provide the original scientific proof for each concept.`;
     console.log("DIMENSION X: Extracting facts...");
     
     // ============ DIMENSION X: Extract Facts ============
-    // Flat async/await pattern - no recursion
     let dimensionXContent = "[]";
     let dimensionXAttempts = 0;
     
@@ -166,7 +172,7 @@ Provide the original scientific proof for each concept.`;
           dimensionXContent = dimensionXData.choices?.[0]?.message?.content || "{}";
           console.log("Dimension X raw response length:", dimensionXContent.length);
           console.log("Dimension X response preview:", dimensionXContent.slice(0, 500));
-          break; // Success, exit loop
+          break;
         } else {
           const errorText = await dimensionXResponse.text();
           console.error(`Dimension X attempt ${dimensionXAttempts} failed:`, errorText);
@@ -192,12 +198,10 @@ Provide the original scientific proof for each concept.`;
     }> = [];
 
     try {
-      // Try to extract JSON object first
       const jsonObjMatch = dimensionXContent.match(/\{[\s\S]*\}/);
       if (jsonObjMatch) {
         const parsed = JSON.parse(jsonObjMatch[0]);
         
-        // KEY MAPPING: Check for different key names the AI might use
         const possibleKeys = ['extracted_facts', 'facts', 'insights', 'concepts', 'data', 'findings', 'claims', 'key_facts'];
         
         for (const key of possibleKeys) {
@@ -214,7 +218,6 @@ Provide the original scientific proof for each concept.`;
           }
         }
         
-        // If still empty, check if parsed itself is an array
         if (extractedFacts.length === 0 && Array.isArray(parsed)) {
           console.log(`Found facts as root array with ${parsed.length} items`);
           extractedFacts = parsed.map((item: any) => ({
@@ -227,7 +230,6 @@ Provide the original scientific proof for each concept.`;
         }
       }
       
-      // Fallback: try parsing as array directly
       if (extractedFacts.length === 0) {
         const jsonArrayMatch = dimensionXContent.match(/\[[\s\S]*\]/);
         if (jsonArrayMatch) {
@@ -247,7 +249,6 @@ Provide the original scientific proof for each concept.`;
       console.log("Raw content that failed to parse:", dimensionXContent.slice(0, 1000));
     }
     
-    // If still no facts, create fallback from raw content
     if (extractedFacts.length === 0 && dimensionXContent.length > 10) {
       console.log("Creating fallback fact from raw content");
       extractedFacts = [{
@@ -260,60 +261,16 @@ Provide the original scientific proof for each concept.`;
 
     console.log(`DIMENSION X: Extracted ${extractedFacts.length} facts`);
 
-    // ============ SAVE FACTS TO DATABASE ============
-    console.log("Saving facts to knowledge_base...");
-    
-    const factsToInsert = extractedFacts.map(fact => ({
-      user_id: userId,
-      project_id: projectId || null,
-      pdf_name: pdfFile.name,
-      fact: fact.fact,
-      page_number: fact.page_number || null,
-      line_reference: fact.line_reference || null,
-      category: fact.category || null,
-      confidence_score: fact.confidence_score || 0.95,
-    }));
-
-    let savedFactsCount = 0;
-
-    if (factsToInsert.length > 0) {
-      try {
-        console.log("Attempting to insert", factsToInsert.length, "facts...");
-        
-        const { data: insertedData, error: insertError, status } = await supabase
-          .from("knowledge_base")
-          .insert(factsToInsert)
-          .select();
-
-        console.log("Supabase response status:", status);
-
-        if (insertError) {
-          console.error("DATABASE_SAVE_FAILURE:", {
-            code: insertError.code,
-            message: insertError.message,
-            details: insertError.details,
-            hint: insertError.hint,
-          });
-        } else if (status === 201 || status === 200) {
-          savedFactsCount = insertedData?.length || 0;
-          console.log(`SUCCESS: Saved ${savedFactsCount} facts to knowledge_base`);
-        }
-      } catch (dbError) {
-        console.error("DATABASE_SAVE_FAILURE: Exception caught:", dbError);
-      }
-    }
-
+    // ============ DIMENSION Y: Generate Narrative ============
     console.log("DIMENSION Y: Generating narrative...");
 
-    // ============ DIMENSION Y: Generate Narrative ============
-    // Only pass summarized facts, not full PDF content - memory optimization
     const factsSummary = extractedFacts.slice(0, 20).map((f, i) => ({
       id: i + 1,
-      fact: f.fact.slice(0, 300), // Limit each fact to 300 chars
+      fact: f.fact.slice(0, 300),
       category: f.category
     }));
 
-    let storyboard: TesseractResponse["storyboard"] = [];
+    let storyboard: SceneSchema[] = [];
     let dimensionYAttempts = 0;
     
     while (dimensionYAttempts < MAX_ITERATIONS) {
@@ -336,7 +293,7 @@ Provide the original scientific proof for each concept.`;
               },
               { 
                 role: "user", 
-                content: `Create a Kurzgesagt-style video script based on these ${factsSummary.length} key facts:\n\n${JSON.stringify(factsSummary, null, 2)}\n\nRespond with a JSON object containing a "storyboard" array. Each storyboard item should have: timestamp, visual_description, narration.`
+                content: `Create a Kurzgesagt-style video script based on these ${factsSummary.length} key facts:\n\n${JSON.stringify(factsSummary, null, 2)}\n\nRespond with a JSON object containing a "scenes" array. Each scene MUST have: scene_id (number), timestamp (string like "00:00"), visual_analogy (string), voiceover_script (string).`
               }
             ],
           }),
@@ -350,8 +307,14 @@ Provide the original scientific proof for each concept.`;
             const jsonMatch = dimensionYContent.match(/\{[\s\S]*\}/);
             if (jsonMatch) {
               const parsed = JSON.parse(jsonMatch[0]);
-              storyboard = parsed.storyboard || [];
-              if (storyboard.length > 0) break; // Success with content
+              const rawScenes = parsed.scenes || parsed.storyboard || [];
+              storyboard = rawScenes.map((s: any, idx: number) => ({
+                scene_id: s.scene_id || idx + 1,
+                timestamp: s.timestamp || "00:00",
+                visual_analogy: s.visual_analogy || s.visual_description || "",
+                voiceover_script: s.voiceover_script || s.narration || ""
+              }));
+              if (storyboard.length > 0) break;
             }
           } catch {
             console.log("Dimension Y parse failed, retrying...");
@@ -366,22 +329,73 @@ Provide the original scientific proof for each concept.`;
       if (dimensionYAttempts >= MAX_ITERATIONS) {
         console.log("Dimension Y: Max iterations reached, using fallback");
         storyboard = [{
-          timestamp: "0:00",
-          visual_description: "Opening scene with abstract visualization",
-          narration: `This video explores ${extractedFacts.length} key concepts from the document.`
+          scene_id: 1,
+          timestamp: "00:00",
+          visual_analogy: "Opening scene with abstract visualization of the document's core concepts",
+          voiceover_script: `This video explores ${extractedFacts.length} key concepts from the document.`
         }];
       }
     }
 
-    console.log("DIMENSION Z: Auditing for scientific accuracy...");
+    // DEBUG LOG: See what storyboard was generated
+    console.log("GENERATED STORYBOARD:", JSON.stringify(storyboard, null, 2));
+    console.log(`Storyboard has ${storyboard.length} scenes`);
+
+    // ============ SAVE FACTS TO DATABASE ============
+    console.log("Saving facts to knowledge_base...");
+    
+    const storyboardJson = { scenes: storyboard };
+    
+    const factsToInsert = extractedFacts.map(fact => ({
+      user_id: userId,
+      project_id: projectId || null,
+      pdf_name: pdfFile.name,
+      fact: fact.fact,
+      page_number: fact.page_number || null,
+      line_reference: fact.line_reference || null,
+      category: fact.category || null,
+      confidence_score: fact.confidence_score || 0.95,
+      storyboard_json: storyboardJson,
+    }));
+
+    let savedFactsCount = 0;
+
+    if (factsToInsert.length > 0) {
+      try {
+        console.log("Attempting to insert", factsToInsert.length, "facts with storyboard_json...");
+        console.log("Sample storyboard_json:", JSON.stringify(storyboardJson).slice(0, 200));
+        
+        const { data: insertedData, error: insertError, status } = await supabase
+          .from("knowledge_base")
+          .insert(factsToInsert)
+          .select();
+
+        console.log("Supabase response status:", status);
+
+        if (insertError) {
+          console.error("DATABASE_SAVE_FAILURE:", {
+            code: insertError.code,
+            message: insertError.message,
+            details: insertError.details,
+            hint: insertError.hint,
+          });
+        } else if (status === 201 || status === 200) {
+          savedFactsCount = insertedData?.length || 0;
+          console.log(`SUCCESS: Saved ${savedFactsCount} facts with storyboard to knowledge_base`);
+        }
+      } catch (dbError) {
+        console.error("DATABASE_SAVE_FAILURE: Exception caught:", dbError);
+      }
+    }
 
     // ============ DIMENSION Z: Audit ============
-    // Only pass storyboard and top facts for auditing - memory optimization
+    console.log("DIMENSION Z: Auditing for scientific accuracy...");
+
     const auditPayload = {
       facts: factsSummary.slice(0, 10),
       scenes: storyboard.slice(0, 10).map(s => ({
         timestamp: s.timestamp,
-        narration: s.narration.slice(0, 200)
+        voiceover: s.voiceover_script.slice(0, 200)
       }))
     };
 
@@ -423,7 +437,7 @@ Provide the original scientific proof for each concept.`;
             if (jsonMatch) {
               const parsed = JSON.parse(jsonMatch[0]);
               analogies = parsed.analogies || [];
-              break; // Success
+              break;
             }
           } catch {
             console.log("Dimension Z parse failed, retrying...");
@@ -442,7 +456,7 @@ Provide the original scientific proof for each concept.`;
 
     // Calculate ADHD-optimized focus score
     const avgSegmentLength = storyboard.length > 0 
-      ? storyboard.reduce((acc, s) => acc + s.narration.length, 0) / storyboard.length 
+      ? storyboard.reduce((acc, s) => acc + s.voiceover_script.length, 0) / storyboard.length 
       : 100;
     
     const focusScore = Math.max(0, Math.min(100, 100 - Math.abs(avgSegmentLength - 150) / 3));
