@@ -1,6 +1,7 @@
 import { FolderOpen, Plus, MoreHorizontal, Circle } from 'lucide-react';
 import { ProcessPaperButton } from './ProcessPaperButton';
 import { StatusTracker, PipelineStage } from './StatusTracker';
+import { RenderingStatus, RenderState } from './RenderingStatus';
 import { SpotlightCard } from './SpotlightCard';
 import { motion } from 'framer-motion';
 
@@ -29,13 +30,29 @@ interface ProjectSidebarProps {
   isProcessing: boolean;
   pipelineStage: PipelineStage;
   isRefining: boolean;
+  renderState?: RenderState;
+  renderProgress?: number;
+  healingAttempt?: number;
+  videoUrl?: string;
+  renderError?: string;
 }
 
 interface ExtendedProjectSidebarProps extends ProjectSidebarProps {
   isVideoPlaying?: boolean;
 }
 
-export function ProjectSidebar({ onUpload, isProcessing, pipelineStage, isRefining, isVideoPlaying = false }: ExtendedProjectSidebarProps) {
+export function ProjectSidebar({ 
+  onUpload, 
+  isProcessing, 
+  pipelineStage, 
+  isRefining, 
+  isVideoPlaying = false,
+  renderState = 'idle',
+  renderProgress = 0,
+  healingAttempt = 0,
+  videoUrl,
+  renderError
+}: ExtendedProjectSidebarProps) {
   return (
     <aside className={`glass-panel h-full flex flex-col min-w-[280px] max-w-[320px] p-6 transition-smooth ${isVideoPlaying ? 'sidebar-dimmed' : ''}`}>
       {/* Process Paper Section */}
@@ -51,6 +68,24 @@ export function ProjectSidebar({ onUpload, isProcessing, pipelineStage, isRefini
           className="mb-6 pb-6 border-b border-gold/30"
         >
           <StatusTracker currentStage={pipelineStage} isRefining={isRefining} />
+        </motion.div>
+      )}
+
+      {/* Rendering Status */}
+      {renderState !== 'idle' && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          className="mb-6 pb-6 border-b border-gold/30"
+        >
+          <RenderingStatus 
+            state={renderState}
+            progress={renderProgress}
+            healingAttempt={healingAttempt}
+            maxHealingAttempts={3}
+            videoUrl={videoUrl}
+            error={renderError}
+          />
         </motion.div>
       )}
 

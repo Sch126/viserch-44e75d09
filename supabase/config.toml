@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.analyze-multidimensional]
 verify_jwt = false
+
+[functions.render-callback]
+verify_jwt = false

@@ -43,10 +43,20 @@ interface SwarmResponse {
   facts_extracted: number;
   pages_processed: number;
   pages_failed: number;
+  render_job_id?: string;
+  render_status?: string;
+}
+
+interface RenderServerResponse {
+  job_id: string;
+  status: "queued" | "rendering" | "complete" | "error";
+  video_url?: string;
+  error?: string;
 }
 
 // Maximum iterations for any agent retry loops
 const MAX_AGENT_RETRIES = 3;
+const MAX_SELF_HEAL_ATTEMPTS = 3;
 const MAX_CONCURRENT_PAGES = 5; // Process 5 pages at a time to avoid rate limits
 
 // ============ UTILITY FUNCTIONS ============
@@ -89,6 +99,188 @@ function safeParseJSON(content: string, fallback: any = null): any {
     console.error("JSON parse error:", e);
   }
   return fallback;
+}
+
+// ============ RENDER SERVER INTEGRATION ============
+
+async function sendToRenderServer(
+  animationCode: string,
+  resolution: string,
+  callbackUrl: string,
+  supabaseUrl: string,
+  supabaseKey: string
+): Promise<RenderServerResponse> {
+  const RENDER_SERVER_URL = Deno.env.get("RENDER_SERVER_URL");
+  
+  if (!RENDER_SERVER_URL) {
+    console.log("RENDER_SERVER_URL not configured, skipping render");
+    return { job_id: "mock_" + Date.now(), status: "queued" };
+  }
+
+  console.log("Sending animation code to render server...");
+  
+  try {
+    const response = await fetch(`${RENDER_SERVER_URL}/render`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        animation_code: animationCode,
+        resolution: resolution,
+        callback_url: callbackUrl,
+        storage_config: {
+          supabase_url: supabaseUrl,
+          supabase_key: supabaseKey,
+          bucket: "videos"
+        }
+      }),
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      console.log("Render job queued:", data);
+      return data as RenderServerResponse;
+    } else {
+      const errorText = await response.text();
+      console.error("Render server error:", errorText);
+      return { 
+        job_id: "error_" + Date.now(), 
+        status: "error", 
+        error: errorText 
+      };
+    }
+  } catch (error) {
+    console.error("Failed to contact render server:", error);
+    return { 
+      job_id: "error_" + Date.now(), 
+      status: "error", 
+      error: error instanceof Error ? error.message : "Network error" 
+    };
+  }
+}
+
+// ============ SELF-HEALING CODE FIXER ============
+
+async function selfHealAnimationCode(
+  apiKey: string,
+  brokenCode: string,
+  syntaxError: string,
+  pageNumber: number,
+  context: ContextPacket,
+  attempt: number
+): Promise<string> {
+  console.log(`AGENT 3 (Self-Heal): Attempt ${attempt} to fix page ${pageNumber} code...`);
+
+  const systemPrompt = `You are a Self-Healing Code Fixer. The previous animation code had a syntax error.
+
+Your job is to fix the code so it compiles correctly.
+
+Error message:
+${syntaxError}
+
+Context: Page ${pageNumber} of "${context.paper_title}"
+
+Rules:
+1. Fix ONLY the syntax error - do not change the visual intent
+2. Ensure all imports are correct for Remotion/React
+3. Return ONLY the fixed code, no explanations
+4. The code must be valid TypeScript/JSX
+
+Respond with JSON:
+{
+  "fixed_code": "// The complete fixed component code"
+}`;
+
+  const response = await callAI(apiKey, systemPrompt, `Fix this broken code:\n\n\`\`\`tsx\n${brokenCode}\n\`\`\``);
+  const parsed = safeParseJSON(response, { fixed_code: "" });
+  
+  let code = parsed.fixed_code || "";
+  
+  // Extract from code blocks if present
+  const codeBlockMatch = code.match(/```(?:tsx|jsx|javascript|js)?\n?([\s\S]*?)```/);
+  if (codeBlockMatch) {
+    code = codeBlockMatch[1].trim();
+  }
+  
+  return code || brokenCode; // Return original if no fix generated
+}
+
+// ============ COMPILE AND RENDER WITH SELF-HEALING ============
+
+async function compileAndRenderWithHealing(
+  apiKey: string,
+  allPageResults: PageResult[],
+  context: ContextPacket,
+  supabaseUrl: string,
+  supabaseKey: string,
+  userId: string,
+  pdfName: string
+): Promise<{ jobId: string; status: string; error?: string }> {
+  console.log("\n====== MEDIA COMPILER INTEGRATION ======");
+  
+  const RENDER_SERVER_URL = Deno.env.get("RENDER_SERVER_URL");
+  const callbackUrl = `${supabaseUrl}/functions/v1/render-callback`;
+  
+  // Combine all animation code into one script
+  const combinedCode = allPageResults
+    .map(r => `// === PAGE ${r.page} ===\n${r.animation_code}`)
+    .join("\n\n");
+  
+  console.log(`Combined animation code: ${combinedCode.length} characters`);
+  
+  let currentCode = combinedCode;
+  let lastError = "";
+  
+  for (let attempt = 1; attempt <= MAX_SELF_HEAL_ATTEMPTS; attempt++) {
+    console.log(`Render attempt ${attempt}/${MAX_SELF_HEAL_ATTEMPTS}...`);
+    
+    // Send to render server
+    const renderResult = await sendToRenderServer(
+      currentCode,
+      "1080p",
+      callbackUrl,
+      supabaseUrl,
+      supabaseKey
+    );
+    
+    // Check for syntax error response
+    if (renderResult.status === "error" && renderResult.error?.includes("SyntaxError")) {
+      console.log(`Syntax error detected, triggering self-heal...`);
+      lastError = renderResult.error;
+      
+      // Find which page had the error (if detectable)
+      const pageMatch = renderResult.error.match(/PAGE (\d+)/);
+      const errorPage = pageMatch ? parseInt(pageMatch[1]) : 1;
+      
+      // Self-heal the code
+      currentCode = await selfHealAnimationCode(
+        apiKey,
+        currentCode,
+        renderResult.error,
+        errorPage,
+        context,
+        attempt
+      );
+      
+      continue; // Try again with fixed code
+    }
+    
+    // Success or non-syntax error - return result
+    return {
+      jobId: renderResult.job_id,
+      status: renderResult.status,
+      error: renderResult.error
+    };
+  }
+  
+  // Max attempts reached
+  console.error("Max self-heal attempts reached, returning last error");
+  return {
+    jobId: "failed_" + Date.now(),
+    status: "error",
+    error: `Max healing attempts (${MAX_SELF_HEAL_ATTEMPTS}) reached. Last error: ${lastError}`
+  };
 }
 
 // ============ AI AGENT FUNCTIONS ============
@@ -581,7 +773,7 @@ serve(async (req) => {
       }))
     };
 
-    // Save all facts to database
+    // Save all facts to database with render_status = pending
     const factsToInsert = allPageResults.flatMap(pageResult =>
       pageResult.facts.map(fact => ({
         user_id: userId,
@@ -593,23 +785,60 @@ serve(async (req) => {
         category: fact.category,
         confidence_score: fact.confidence_score,
         storyboard_json: storyboardJson,
+        render_status: 'pending',
+        video_url: null
       }))
     );
 
     let savedFactsCount = 0;
+    let insertedIds: string[] = [];
     if (factsToInsert.length > 0) {
       console.log(`Inserting ${factsToInsert.length} facts to knowledge_base...`);
       const { data: insertedData, error: insertError } = await supabase
         .from("knowledge_base")
         .insert(factsToInsert)
-        .select();
+        .select("id");
 
       if (insertError) {
         console.error("DATABASE_SAVE_FAILURE:", insertError);
       } else {
         savedFactsCount = insertedData?.length || 0;
+        insertedIds = insertedData?.map((d: any) => d.id) || [];
         console.log(`SUCCESS: Saved ${savedFactsCount} facts with storyboard`);
       }
+    }
+
+    // ============ PHASE 5: MEDIA COMPILER INTEGRATION ============
+    console.log("\n====== PHASE 5: MEDIA COMPILER ======");
+    
+    // Update render_status to 'rendering' for all inserted facts
+    if (insertedIds.length > 0) {
+      await supabase
+        .from("knowledge_base")
+        .update({ render_status: 'rendering' })
+        .in('id', insertedIds);
+    }
+
+    // Send to render server with self-healing
+    const renderResult = await compileAndRenderWithHealing(
+      LOVABLE_API_KEY,
+      allPageResults,
+      context,
+      supabaseUrl,
+      supabaseServiceKey,
+      userId,
+      pdfFile.name
+    );
+
+    console.log("RENDER RESULT:", renderResult);
+
+    // Update render_status based on result
+    if (insertedIds.length > 0) {
+      const newStatus = renderResult.status === 'error' ? 'error' : 'rendering';
+      await supabase
+        .from("knowledge_base")
+        .update({ render_status: newStatus })
+        .in('id', insertedIds);
     }
 
     // Calculate focus score (ADHD-optimized based on voiceover lengths)
@@ -624,7 +853,9 @@ serve(async (req) => {
       focus_score: Math.round(focusScore),
       facts_extracted: totalFacts,
       pages_processed: successCount,
-      pages_failed: failCount
+      pages_failed: failCount,
+      render_job_id: renderResult.jobId,
+      render_status: renderResult.status
     };
 
     console.log("\n====== SWARM COMPLETE ======");
@@ -634,7 +865,9 @@ serve(async (req) => {
       pages_success: successCount,
       pages_fallback: failCount,
       db_saved: savedFactsCount,
-      focus_score: response.focus_score
+      focus_score: response.focus_score,
+      render_job_id: renderResult.jobId,
+      render_status: renderResult.status
     });
 
     return new Response(JSON.stringify(response), {
@@ -652,7 +885,8 @@ serve(async (req) => {
       focus_score: 0,
       facts_extracted: 0,
       pages_processed: 0,
-      pages_failed: 0
+      pages_failed: 0,
+      render_status: 'error'
     }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

@@ -8,6 +8,7 @@ export type PipelineStage =
   | 'manim-engineer'
   | 'adhd-critic'
   | 'refining'
+  | 'rendering'
   | 'complete';
 
 interface StatusTrackerProps {
