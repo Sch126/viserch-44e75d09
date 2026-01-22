@@ -4,6 +4,7 @@ import { VideoPlayer } from '@/components/VideoPlayer';
 import { AIChatSidebar } from '@/components/AIChatSidebar';
 import { LabNotebook, LabEntry } from '@/components/LabNotebook';
 import { PipelineStage } from '@/components/StatusTracker';
+import { RenderState } from '@/components/RenderingStatus';
 import { LivingBackground } from '@/components/LivingBackground';
 import { useState, useCallback, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
@@ -25,6 +26,8 @@ interface TesseractResponse {
   }>;
   focus_score: number;
   facts_extracted: number;
+  render_job_id?: string;
+  render_status?: string;
   error?: string;
 }
 const Index = () => {
@@ -37,6 +40,13 @@ const Index = () => {
   const [isFocusMode, setIsFocusMode] = useState(false);
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const [newEntryId, setNewEntryId] = useState<string | null>(null);
+  
+  // Render state tracking
+  const [renderState, setRenderState] = useState<RenderState>('idle');
+  const [renderProgress, setRenderProgress] = useState(0);
+  const [healingAttempt, setHealingAttempt] = useState(0);
+  const [videoUrl, setVideoUrl] = useState<string | undefined>();
+  const [renderError, setRenderError] = useState<string | undefined>();
   
   // Cinematic focus - dims other panels when user is actively engaged
   const { isActive: isCinematicActive, triggerFocus: triggerCinematicFocus } = useCinematicFocus(3000);
@@ -108,7 +118,7 @@ const Index = () => {
       }
 
       // Check if any analogies are risky
-      const riskyAnalogies = result.analogies.filter(a => a.risk_level === 'risky');
+      const riskyAnalogies = result.analogies?.filter(a => a.risk_level === 'risky') || [];
       if (riskyAnalogies.length > 0) {
         setIsRefining(true);
         await new Promise(resolve => setTimeout(resolve, 1500));
@@ -116,6 +126,18 @@ const Index = () => {
       }
 
       setPipelineStage('complete');
+      
+      // Handle render state from response
+      if (result.render_status) {
+        if (result.render_status === 'queued' || result.render_status === 'rendering') {
+          setRenderState('compiling');
+          // Simulate progress for now (in production, poll for status)
+          simulateRenderProgress();
+        } else if (result.render_status === 'error') {
+          setRenderState('error');
+          setRenderError('Render server encountered an error');
+        }
+      }
       
       toast({
         title: "Processing Complete",
@@ -132,10 +154,29 @@ const Index = () => {
         variant: "destructive"
       });
       setPipelineStage('idle');
+      setRenderState('error');
+      setRenderError(error instanceof Error ? error.message : "Unknown error");
     } finally {
       setIsProcessing(false);
     }
   }, [toast]);
+
+  // Simulate render progress (in production, poll the render server)
+  const simulateRenderProgress = useCallback(() => {
+    setRenderState('rendering');
+    setRenderProgress(0);
+    
+    const interval = setInterval(() => {
+      setRenderProgress(prev => {
+        if (prev >= 100) {
+          clearInterval(interval);
+          setRenderState('complete');
+          return 100;
+        }
+        return prev + Math.random() * 15;
+      });
+    }, 1000);
+  }, []);
 
   const handleCircleCapture = useCallback((bounds: { x: number; y: number; width: number; height: number }) => {
     const newEntry: LabEntry = {
@@ -235,6 +276,11 @@ const Index = () => {
                     pipelineStage={pipelineStage}
                     isRefining={isRefining}
                     isVideoPlaying={isVideoPlaying}
+                    renderState={renderState}
+                    renderProgress={Math.round(renderProgress)}
+                    healingAttempt={healingAttempt}
+                    videoUrl={videoUrl}
+                    renderError={renderError}
                   />
                 </motion.div>
               </motion.div>
